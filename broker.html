@@ -124,41 +124,43 @@
         }
 
         async function askCoach() {
-    const input = document.getElementById('coach-input');
-    const chat = document.getElementById('ai-coach-chat');
-    const msg = input.value;
-    if(!msg) return;
+            const input = document.getElementById('coach-input');
+            const chat = document.getElementById('ai-coach-chat');
+            const msg = input.value;
+            if(!msg) return;
 
-    chat.innerHTML += `<div class="self-end bg-blue-600/20 p-3 rounded-2xl max-w-[80%] ml-auto text-blue-100"><b>أنا:</b> ${msg}</div>`;
-    input.value = "";
-    chat.scrollTop = chat.scrollHeight;
+            chat.innerHTML += `<div class="self-end bg-blue-600/20 p-3 rounded-2xl max-w-[80%] ml-auto text-blue-100"><b>أنا:</b> ${msg}</div>`;
+            input.value = "";
+            chat.scrollTop = chat.scrollHeight;
 
-    try {
-        // Step A: Ask the Brain
-        const brainResponse = await fetch(APPS_SCRIPT_URL, {
-            method: "POST",
-            body: JSON.stringify({ action: "askAIP", message: msg })
-        });
-        const brainData = await brainResponse.json();
-        const aiReply = brainData.reply;
+            try {
+                // Step A: Ask the Brain via POST fetch
+                const brainResponse = await fetch(APPS_SCRIPT_URL, {
+                    method: "POST",
+                    body: JSON.stringify({ action: "askAIP", message: msg })
+                });
+                const brainData = await brainResponse.json();
+                const aiReply = brainData.reply;
 
-        chat.innerHTML += `<div class="self-start bg-white/5 p-3 rounded-2xl max-w-[80%] text-gray-300"><b>AIP:</b> ${aiReply}</div>`;
-        chat.scrollTop = chat.scrollHeight;
+                chat.innerHTML += `<div class="self-start bg-white/5 p-3 rounded-2xl max-w-[80%] text-gray-300"><b>AIP:</b> ${aiReply}</div>`;
+                chat.scrollTop = chat.scrollHeight;
 
-        // Step B: Get the Voice
-        const voiceResponse = await fetch(APPS_SCRIPT_URL, {
-            method: "POST",
-            body: JSON.stringify({ action: "getVoice", text: aiReply })
-        });
-        const voiceData = await voiceResponse.json();
-        
-        const audio = new Audio("data:audio/mp3;base64," + voiceData.audio);
-        audio.play();
+                // Step B: Get the Voice via POST fetch
+                const voiceResponse = await fetch(APPS_SCRIPT_URL, {
+                    method: "POST",
+                    body: JSON.stringify({ action: "getVoice", text: aiReply })
+                });
+                const voiceData = await voiceResponse.json();
+                
+                if (voiceData.audio) {
+                    const audio = new Audio("data:audio/mp3;base64," + voiceData.audio);
+                    audio.play();
+                }
 
-    } catch (err) {
-        console.error("AIP Error:", err);
-    }
-}
+            } catch (err) {
+                console.error("AIP Error:", err);
+            }
+        }
 
         function startListening() {
             const btn = document.getElementById('mic-btn');
