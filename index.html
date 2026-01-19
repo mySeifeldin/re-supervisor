@@ -89,47 +89,64 @@
     </main>
 
     <script>
-        // REPLACE THIS WITH YOUR NEW DEPLOYMENT URL
-        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbztNYbL5qKJjyk9zwqIzXRIK7-J1YyGFXeeIw0b17rOYiPYuHCVTYgaySWtmvveIV4HaQ/exec";
+        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbztNYbL5qKJjyk9zwqIzXRIK7-J1YyGFXeeIw0b17rOYiPYuHCVTYgaySWtmvveIV4HaQ/exec"; // PASTE NEW URL HERE
+let masterData = {}; // Store data globally so we can switch tabs quickly
 
-        function showTab(tabName, event) {
-            document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
-            document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
-            document.getElementById('tab-' + tabName).classList.remove('hidden');
-            if (event) event.currentTarget.classList.add('active');
-        }
+function showTab(tabName, event) {
+    document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
+    document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+    
+    const targetSection = document.getElementById('tab-' + tabName);
+    if (targetSection) targetSection.classList.remove('hidden');
+    if (event) event.currentTarget.classList.add('active');
 
-        // The JSONP Callback function
-        window.handleData = function(data) {
-            console.log("Success! Received data:", data);
-            document.getElementById('count-projects').innerText = data.projectsCount || 0;
-            document.getElementById('count-units').innerText = data.availableUnits || 0;
-            document.getElementById('count-deals').innerText = data.openDeals || 0;
-            
-            document.getElementById('recent-activity').innerHTML = `
-                <p class="text-green-400 text-sm">
-                    <i class="fas fa-check-circle"></i> Connection stable. Data synced at ${new Date().toLocaleTimeString()}
-                </p>`;
-        };
+    // If we switch to projects or units, render the tables
+    if (tabName === 'projects') renderProjects();
+    if (tabName === 'units') renderUnits();
+}
 
-        function init() {
-            // Create a script element to bypass CORS
-            const script = document.createElement('script');
-            script.src = `${APPS_SCRIPT_URL}?callback=handleData`;
-            
-            script.onerror = function() {
-                document.getElementById('recent-activity').innerHTML = `
-                    <p class="text-red-400 text-sm">
-                        <i class="fas fa-times-circle"></i> Connection Failed. Verify Apps Script deployment settings.
-                    </p>`;
-            };
+window.handleData = function(data) {
+    masterData = data; // Save the data
+    document.getElementById('count-projects').innerText = data.projectsCount || 0;
+    document.getElementById('count-units').innerText = data.availableUnits || 0;
+    document.getElementById('count-deals').innerText = data.openDeals || 0;
+    
+    document.getElementById('recent-activity').innerHTML = `
+        <p class="text-green-400 text-sm"><i class="fas fa-check-circle"></i> Connection stable. Data synced.</p>`;
+};
 
-            document.head.appendChild(script);
-        }
+function renderProjects() {
+    const rows = masterData.projectsList || [];
+    const container = document.getElementById('project-rows');
+    container.innerHTML = ""; // Clear existing
 
-        window.onload = init;
+    // Skip header (i=0)
+    for (let i = 1; i < rows.length; i++) {
+        container.innerHTML += `
+            <tr class="border-b border-white/5 hover:bg-white/5 transition">
+                <td class="p-4 font-bold text-blue-400">${rows[i][2]}</td>
+                <td class="p-4 text-gray-300">${rows[i][3]}</td>
+                <td class="p-4 text-gray-400">${rows[i][1]}</td>
+                <td class="p-4"><button class="text-xs bg-gray-700 px-2 py-1 rounded">Edit</button></td>
+            </tr>`;
+    }
+}
+
+// Add this to your HTML main section to support the Units tab
+function renderUnits() {
+    // We will build the Units UI next, it needs a similar table structure in HTML
+}
+
+function init() {
+    const script = document.createElement('script');
+    script.src = `${APPS_SCRIPT_URL}?callback=handleData`;
+    document.head.appendChild(script);
+}
+
+window.onload = init;
     </script>
 </body>
 </html>
+
 
 
