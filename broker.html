@@ -34,9 +34,7 @@
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div class="lg:col-span-1">
-                <h3 class="text-lg font-bold mb-6 flex items-center gap-2">
-                    <i class="fas fa-bolt text-yellow-400"></i> AI Success Plan
-                </h3>
+                <h3 class="text-lg font-bold mb-6 flex items-center gap-2"><i class="fas fa-bolt text-yellow-400"></i> AI Success Plan</h3>
                 <div class="relative border-l border-gray-800 ml-3 space-y-8 pl-8" id="ai-schedule">
                     <p class="text-gray-500 italic text-sm">Analyzing market matches...</p>
                 </div>
@@ -61,24 +59,18 @@
 
                 <div class="glass-card p-8 rounded-3xl border-t border-white/5">
                     <div class="flex justify-between items-center mb-6">
-                        <h3 class="font-bold flex items-center gap-2 text-purple-400">
-                            <i class="fas fa-comment-dots"></i> AI Sales Coach (Street Mode)
-                        </h3>
+                        <h3 class="font-bold flex items-center gap-2 text-purple-400"><i class="fas fa-comment-dots"></i> AI Sales Coach</h3>
                         <span class="text-[9px] bg-purple-900/30 px-2 py-1 rounded text-purple-300 uppercase">Neural Voice Active</span>
                     </div>
-                    
                     <div class="bg-black/40 rounded-2xl p-6 h-64 overflow-y-auto mb-6 text-sm flex flex-col gap-4 shadow-inner" id="ai-coach-chat">
-                        <div class="text-gray-500 italic">بمسي عليك يا ريس! اؤمرني، محتاج مساعدة في أي بيعة النهاردة؟</div>
+                        <div class="text-gray-500 italic text-center">بمسي عليك يا ريس! اؤمرني محتاج مساعدة في أي بيعة؟</div>
                     </div>
-
                     <div class="flex gap-3">
                         <button onclick="startListening()" id="mic-btn" class="bg-blue-600/10 text-blue-400 w-12 h-12 rounded-xl border border-blue-500/30 hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center">
                             <i class="fas fa-microphone"></i>
                         </button>
                         <input type="text" id="coach-input" class="flex-1 bg-gray-900/50 border border-gray-800 rounded-xl px-4 text-sm focus:outline-none focus:border-blue-500" placeholder="اسأل البرنس...">
-                        <button onclick="askCoach()" class="bg-blue-600 px-6 rounded-xl hover:bg-blue-700 transition-all font-bold">
-                            <i class="fas fa-paper-plane"></i>
-                        </button>
+                        <button onclick="askCoach()" class="bg-blue-600 px-6 rounded-xl hover:bg-blue-700 transition-all font-bold"><i class="fas fa-paper-plane"></i></button>
                     </div>
                 </div>
             </div>
@@ -92,12 +84,13 @@
 
         window.handleBrokerData = function(data) {
             masterData = data;
+            if(!data.brokersList) return;
             const broker = data.brokersList.find(b => b[0] === CURRENT_BROKER_ID);
             if(broker) {
                 document.getElementById('broker-name').innerText = broker[1];
                 document.getElementById('broker-area').innerText = broker[3];
             }
-            const clients = data.clientsList.filter(c => c[5] === CURRENT_BROKER_ID);
+            const clients = data.clientsList ? data.clientsList.filter(c => c[5] === CURRENT_BROKER_ID) : [];
             renderBrokerClients(clients);
             renderAISchedule(clients);
         };
@@ -134,31 +127,30 @@
             chat.scrollTop = chat.scrollHeight;
 
             try {
-                // Step A: Ask the Brain via POST fetch
                 const brainResponse = await fetch(APPS_SCRIPT_URL, {
                     method: "POST",
                     body: JSON.stringify({ action: "askAIP", message: msg })
                 });
                 const brainData = await brainResponse.json();
+                
+                if (brainData.error) throw new Error(brainData.error);
                 const aiReply = brainData.reply;
 
                 chat.innerHTML += `<div class="self-start bg-white/5 p-3 rounded-2xl max-w-[80%] text-gray-300"><b>AIP:</b> ${aiReply}</div>`;
                 chat.scrollTop = chat.scrollHeight;
 
-                // Step B: Get the Voice via POST fetch
                 const voiceResponse = await fetch(APPS_SCRIPT_URL, {
                     method: "POST",
                     body: JSON.stringify({ action: "getVoice", text: aiReply })
                 });
                 const voiceData = await voiceResponse.json();
-                
                 if (voiceData.audio) {
                     const audio = new Audio("data:audio/mp3;base64," + voiceData.audio);
                     audio.play();
                 }
-
             } catch (err) {
                 console.error("AIP Error:", err);
+                chat.innerHTML += `<div class="text-red-400 text-[10px] italic">Error: ${err.message}</div>`;
             }
         }
 
@@ -168,7 +160,6 @@
             recognition.lang = 'ar-EG';
             recognition.start();
             btn.classList.add('animate-pulse', 'bg-red-600/20', 'text-red-400');
-            
             recognition.onresult = (event) => {
                 document.getElementById('coach-input').value = event.results[0][0].transcript;
                 btn.classList.remove('animate-pulse', 'bg-red-600/20', 'text-red-400');
