@@ -9,7 +9,7 @@
     <style>
         body { background-color: #020617; color: #f8fafc; font-family: 'Inter', sans-serif; }
         .glass-card { background: rgba(30, 41, 59, 0.4); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.05); }
-        .sidebar-item { transition: all 0.2s; border-radius: 12px; margin: 4px 0; }
+        .sidebar-item { transition: all 0.2s; border-radius: 12px; margin: 4px 0; border: none; background: transparent; cursor: pointer; text-align: left; color: #94a3b8; }
         .sidebar-item:hover, .sidebar-item.active { background: #3b82f6; color: white; }
     </style>
 </head>
@@ -22,19 +22,19 @@
         </div>
 
         <nav class="flex-1">
-            <button onclick="showTab('dashboard')" class="sidebar-item active w-full flex items-center p-3 gap-3">
+            <button onclick="showTab('dashboard', event)" class="sidebar-item active w-full flex items-center p-3 gap-3">
                 <i class="fas fa-chart-pie"></i> Dashboard
             </button>
-            <button onclick="showTab('projects')" class="sidebar-item w-full flex items-center p-3 gap-3">
+            <button onclick="showTab('projects', event)" class="sidebar-item w-full flex items-center p-3 gap-3">
                 <i class="fas fa-building"></i> Projects
             </button>
-            <button onclick="showTab('units')" class="sidebar-item w-full flex items-center p-3 gap-3">
+            <button onclick="showTab('units', event)" class="sidebar-item w-full flex items-center p-3 gap-3">
                 <i class="fas fa-door-open"></i> Units
             </button>
-            <button onclick="showTab('brokers')" class="sidebar-item w-full flex items-center p-3 gap-3">
+            <button onclick="showTab('brokers', event)" class="sidebar-item w-full flex items-center p-3 gap-3">
                 <i class="fas fa-user-tie"></i> Brokers
             </button>
-            <button onclick="showTab('clients')" class="sidebar-item w-full flex items-center p-3 gap-3">
+            <button onclick="showTab('clients', event)" class="sidebar-item w-full flex items-center p-3 gap-3">
                 <i class="fas fa-users"></i> Deals & Clients
             </button>
         </nav>
@@ -66,7 +66,7 @@
             <div class="glass-card rounded-3xl p-8">
                 <h3 class="text-xl font-bold mb-6">Recent Activity Log</h3>
                 <div class="space-y-4" id="recent-activity">
-                    <p class="text-gray-500 text-sm italic">Waiting for connection to Google Sheets...</p>
+                    <p class="text-gray-500 text-sm italic">Connecting to Google Sheets via JSONP...</p>
                 </div>
             </div>
         </section>
@@ -89,28 +89,45 @@
     </main>
 
     <script>
+        // REPLACE THIS WITH YOUR NEW DEPLOYMENT URL
         const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwYn3Jn-UndDe5MRy5En4c-hTZT56eQrJ55_uhmApkscx8iz72FDW7W71xsnRydB4T4cQ/exec";
 
-        function showTab(tabName) {
+        function showTab(tabName, event) {
             document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
             document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
             document.getElementById('tab-' + tabName).classList.remove('hidden');
-            event.currentTarget.classList.add('active');
+            if (event) event.currentTarget.classList.add('active');
         }
 
-        async function init() {
-            try {
-                const response = await fetch(APPS_SCRIPT_URL);
-                const data = await response.json();
-                document.getElementById('count-projects').innerText = data.projectsCount;
-                document.getElementById('count-units').innerText = data.availableUnits;
-                document.getElementById('count-deals').innerText = data.openDeals;
-            } catch (err) {
-                console.error("Connection Failed:", err);
-            }
+        // The JSONP Callback function
+        window.handleData = function(data) {
+            console.log("Success! Received data:", data);
+            document.getElementById('count-projects').innerText = data.projectsCount || 0;
+            document.getElementById('count-units').innerText = data.availableUnits || 0;
+            document.getElementById('count-deals').innerText = data.openDeals || 0;
+            
+            document.getElementById('recent-activity').innerHTML = `
+                <p class="text-green-400 text-sm">
+                    <i class="fas fa-check-circle"></i> Connection stable. Data synced at ${new Date().toLocaleTimeString()}
+                </p>`;
+        };
+
+        function init() {
+            // Create a script element to bypass CORS
+            const script = document.createElement('script');
+            script.src = `${APPS_SCRIPT_URL}?callback=handleData`;
+            
+            script.onerror = function() {
+                document.getElementById('recent-activity').innerHTML = `
+                    <p class="text-red-400 text-sm">
+                        <i class="fas fa-times-circle"></i> Connection Failed. Verify Apps Script deployment settings.
+                    </p>`;
+            };
+
+            document.head.appendChild(script);
         }
 
-        init();
+        window.onload = init;
     </script>
 </body>
 </html>
