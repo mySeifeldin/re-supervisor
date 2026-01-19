@@ -12,20 +12,18 @@
         .glass-card { background: rgba(30, 41, 59, 0.4); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.05); }
         .sidebar-item { transition: all 0.2s; border-radius: 12px; margin: 4px 0; border: none; background: transparent; cursor: pointer; text-align: left; color: #94a3b8; width: 100%; padding: 12px; display: flex; align-items: center; gap: 12px; }
         .sidebar-item:hover, .sidebar-item.active { background: #3b82f6; color: white; }
-        .chart-container { position: relative; height: 250px; width: 100%; }
-        /* Logo styling to ensure it fits perfectly */
-        .brand-logo { width: 140px; height: auto; filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.5)); }
+        .chart-container { position: relative; height: 280px; width: 100%; }
+        /* Logo glow effect */
+        .brand-logo { width: 120px; height: auto; filter: drop-shadow(0 0 10px rgba(59, 130, 246, 0.3)); }
     </style>
 </head>
 <body class="flex h-screen overflow-hidden">
 
     <aside class="w-64 glass-card h-full p-6 flex flex-col border-r border-gray-800">
-        <div class="mb-10 px-2 flex flex-col items-center border-b border-gray-800 pb-6">
-            <img src="https://myseifeldin.github.io/re-supervisor/logo.png" alt="AIP Logo" class="brand-logo mb-3">
-            <div class="text-center">
-                <h1 class="text-sm font-bold tracking-widest text-white uppercase">AI Property</h1>
-                <p class="text-[10px] text-blue-500 font-bold uppercase tracking-tighter">Supervisor Command Hub</p>
-            </div>
+        <div class="mb-10 px-2 flex flex-col items-center border-b border-gray-800 pb-6 text-center">
+            <img src="logo.png" alt="AIP Logo" class="brand-logo mb-4" onerror="this.src='https://via.placeholder.com/120x120/3b82f6/ffffff?text=AIP+LOGO'">
+            <h1 class="text-xs font-bold tracking-widest text-blue-400 uppercase">AI Property</h1>
+            <p class="text-[9px] text-gray-500 font-bold uppercase tracking-widest mt-1">Supervisor Hub</p>
         </div>
 
         <nav class="flex-1">
@@ -36,7 +34,7 @@
             <button onclick="showTab('clients', event)" class="sidebar-item"><i class="fas fa-handshake"></i> Deals</button>
         </nav>
 
-        <div class="mt-auto pt-6 border-t border-gray-800 text-[9px] text-gray-500 text-center">
+        <div class="mt-auto pt-6 border-t border-gray-800 text-[9px] text-gray-600 text-center uppercase tracking-tighter">
             © 2026 Artificial Intelligence Property (AIP)
         </div>
     </aside>
@@ -44,66 +42,66 @@
     <main class="flex-1 overflow-y-auto p-10 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-blue-900/10 via-slate-950 to-slate-950">
         
         <section id="tab-dashboard">
-            <div class="flex items-center gap-4 mb-8">
-                <img src="https://myseifeldin.github.io/re-supervisor/logo.png" class="w-10 h-auto opacity-50">
-                <h2 class="text-3xl font-black">AIP <span class="text-blue-500">Analytics</span></h2>
-            </div>
+            <header class="mb-10">
+                <h2 class="text-3xl font-black text-white">AIP <span class="text-blue-500">Live Analytics</span></h2>
+                <p class="text-gray-500 text-sm">Real-time performance metrics from New Cairo Hub</p>
+            </header>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-10">
-                <div class="glass-card p-6 rounded-2xl border-l-4 border-blue-500">
-                    <p class="text-gray-400 text-xs font-bold uppercase">Portfolio Projects</p>
-                    <h2 id="count-projects" class="text-4xl font-black">--</h2>
+                <div class="glass-card p-6 rounded-2xl border-l-4 border-blue-500 bg-gradient-to-br from-blue-500/5 to-transparent">
+                    <p class="text-gray-400 text-xs font-bold uppercase tracking-wider mb-2">Portfolio Projects</p>
+                    <h2 id="count-projects" class="text-5xl font-black text-white">--</h2>
                 </div>
-                <div class="glass-card p-6 rounded-2xl border-l-4 border-green-500">
-                    <p class="text-gray-400 text-xs font-bold uppercase">AIP Available Inventory</p>
-                    <h2 id="count-units" class="text-4xl font-black text-green-400">--</h2>
+                <div class="glass-card p-6 rounded-2xl border-l-4 border-green-500 bg-gradient-to-br from-green-500/5 to-transparent">
+                    <p class="text-gray-400 text-xs font-bold uppercase tracking-wider mb-2">Available Inventory</p>
+                    <h2 id="count-units" class="text-5xl font-black text-green-400">--</h2>
                 </div>
-                <div class="glass-card p-6 rounded-2xl border-l-4 border-purple-500">
-                    <p class="text-gray-400 text-xs font-bold uppercase">Total Open Deals</p>
-                    <h2 id="count-deals" class="text-4xl font-black text-purple-400">--</h2>
+                <div class="glass-card p-6 rounded-2xl border-l-4 border-purple-500 bg-gradient-to-br from-purple-500/5 to-transparent">
+                    <p class="text-gray-400 text-xs font-bold uppercase tracking-wider mb-2">Active AI Deals</p>
+                    <h2 id="count-deals" class="text-5xl font-black text-purple-400">--</h2>
                 </div>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10">
-                <div class="glass-card p-6 rounded-3xl">
-                    <h3 class="font-bold mb-4 text-gray-300 italic">Inventory Health</h3>
+                <div class="glass-card p-8 rounded-3xl">
+                    <h3 class="font-bold mb-6 text-gray-300 flex items-center gap-2"><i class="fas fa-pie-chart text-blue-500"></i> Unit Availability</h3>
                     <div class="chart-container"><canvas id="inventoryChart"></canvas></div>
                 </div>
-                <div class="glass-card p-6 rounded-3xl">
-                    <h3 class="font-bold mb-4 text-gray-300 italic">Broker Conversion Performance</h3>
+                <div class="glass-card p-8 rounded-3xl">
+                    <h3 class="font-bold mb-6 text-gray-300 flex items-center gap-2"><i class="fas fa-bar-chart text-purple-500"></i> Broker Deal Flow</h3>
                     <div class="chart-container"><canvas id="brokerChart"></canvas></div>
                 </div>
             </div>
         </section>
 
         <section id="tab-projects" class="hidden">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-2xl font-bold">AIP Projects List</h2>
-                <label class="bg-blue-600 px-4 py-2 rounded-lg cursor-pointer text-sm font-bold transition hover:bg-blue-700">
-                    Import Projects <input type="file" class="hidden" onchange="handleFileUpload(event, 'Projects')">
+            <div class="flex justify-between items-center mb-8">
+                <h2 class="text-2xl font-bold">Projects Management</h2>
+                <label class="bg-blue-600 px-6 py-2 rounded-xl text-sm font-bold cursor-pointer hover:bg-blue-700 transition-all">
+                    Import Projects CSV <input type="file" class="hidden" onchange="handleFileUpload(event, 'Projects')">
                 </label>
             </div>
-            <div class="glass-card rounded-xl overflow-x-auto"><table class="w-full text-left text-sm"><thead id="head-projects" class="bg-white/5"></thead><tbody id="rows-projects"></tbody></table></div>
+            <div class="glass-card rounded-2xl overflow-x-auto"><table class="w-full text-left text-sm"><thead id="head-projects" class="bg-white/5"></thead><tbody id="rows-projects"></tbody></table></div>
         </section>
 
         <section id="tab-units" class="hidden">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-2xl font-bold">Units Inventory</h2>
-                <label class="bg-green-600 px-4 py-2 rounded-lg cursor-pointer text-sm font-bold transition hover:bg-green-700">
+            <div class="flex justify-between items-center mb-8">
+                <h2 class="text-2xl font-bold">AIP Units Inventory</h2>
+                <label class="bg-green-600 px-6 py-2 rounded-xl text-sm font-bold cursor-pointer hover:bg-green-700 transition-all">
                     Import Units CSV <input type="file" class="hidden" onchange="handleFileUpload(event, 'Units')">
                 </label>
             </div>
-            <div class="glass-card rounded-xl overflow-x-auto"><table class="w-full text-left text-sm"><thead id="head-units" class="bg-white/5"></thead><tbody id="rows-units"></tbody></table></div>
+            <div class="glass-card rounded-2xl overflow-x-auto"><table class="w-full text-left text-sm"><thead id="head-units" class="bg-white/5"></thead><tbody id="rows-units"></tbody></table></div>
         </section>
 
         <section id="tab-brokers" class="hidden">
-            <h2 class="text-2xl font-bold mb-6">Assigned AIP Brokers</h2>
-            <div class="glass-card rounded-xl overflow-x-auto"><table class="w-full text-left text-sm"><thead id="head-brokers" class="bg-white/5"></thead><tbody id="rows-brokers"></tbody></table></div>
+            <h2 class="text-2xl font-bold mb-8">Broker Performance List</h2>
+            <div class="glass-card rounded-2xl overflow-x-auto"><table class="w-full text-left text-sm"><thead id="head-brokers" class="bg-white/5"></thead><tbody id="rows-brokers"></tbody></table></div>
         </section>
 
         <section id="tab-clients" class="hidden">
-            <h2 class="text-2xl font-bold mb-6">Deals & Live AI Guidance</h2>
-            <div class="glass-card rounded-xl overflow-x-auto"><table class="w-full text-left text-sm"><thead id="head-clients" class="bg-white/5"></thead><tbody id="rows-clients"></tbody></table></div>
+            <h2 class="text-2xl font-bold mb-8">Client Leads & AI Support</h2>
+            <div class="glass-card rounded-2xl overflow-x-auto"><table class="w-full text-left text-sm"><thead id="head-clients" class="bg-white/5"></thead><tbody id="rows-clients"></tbody></table></div>
         </section>
 
     </main>
@@ -118,15 +116,14 @@
             document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
             document.getElementById('tab-' + tabName).classList.remove('hidden');
             if(event) event.currentTarget.classList.add('active');
-            
             if(tabName !== 'dashboard') renderFullTable(tabName);
         }
 
         window.handleData = function(data) {
             masterData = data;
-            document.getElementById('count-projects').innerText = data.projectsCount;
-            document.getElementById('count-units').innerText = data.availableUnits;
-            document.getElementById('count-deals').innerText = data.openDeals;
+            document.getElementById('count-projects').innerText = data.projectsCount || 0;
+            document.getElementById('count-units').innerText = data.availableUnits || 0;
+            document.getElementById('count-deals').innerText = data.openDeals || 0;
             updateCharts();
         };
 
@@ -136,29 +133,51 @@
             const body = document.getElementById('rows-' + type);
             if(!data || data.length === 0) return;
 
-            head.innerHTML = `<tr>${data[0].map(h => `<th class="p-4 font-bold text-blue-400 border-b border-gray-800">${h}</th>`).join('')}</tr>`;
-            body.innerHTML = data.slice(1).map(row => `<tr class="border-b border-white/5 hover:bg-white/5 text-xs">${row.map(cell => `<td class="p-4 text-gray-400">${cell}</td>`).join('')}</tr>`).join('');
+            // Render All Columns Dynamically
+            head.innerHTML = `<tr>${data[0].map(h => `<th class="p-4 font-bold text-blue-400 border-b border-gray-800 uppercase tracking-tighter">${h}</th>`).join('')}</tr>`;
+            body.innerHTML = data.slice(1).map(row => `<tr class="border-b border-white/5 hover:bg-white/10 transition-all text-xs text-gray-400">${row.map(cell => `<td class="p-4">${cell || ''}</td>`).join('')}</tr>`).join('');
         }
 
         function updateCharts() {
             const ctxInv = document.getElementById('inventoryChart').getContext('2d');
             if(charts.inv) charts.inv.destroy();
-            
             charts.inv = new Chart(ctxInv, {
                 type: 'doughnut',
                 data: {
-                    labels: ['Available', 'Sold', 'Reserved'],
+                    labels: ['Available', 'Sold/Reserved'],
                     datasets: [{
-                        data: [masterData.availableUnits, (masterData.unitsList.length - masterData.availableUnits - 1), 0],
-                        backgroundColor: ['#3b82f6', '#1e293b', '#60a5fa'],
-                        borderWidth: 0
+                        data: [masterData.availableUnits, (masterData.unitsList.length - masterData.availableUnits - 1)],
+                        backgroundColor: ['#3b82f6', '#1e293b'],
+                        borderColor: 'rgba(255,255,255,0.1)',
+                        borderWidth: 2
+                    }]
+                },
+                options: { maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8', font: { size: 11 } } } } }
+            });
+
+            const ctxBrk = document.getElementById('brokerChart').getContext('2d');
+            if(charts.brk) charts.brk.destroy();
+            const brokerNames = masterData.brokersList.slice(1).map(b => b[1]);
+            const dealCounts = masterData.brokersList.slice(1).map(b => b[4]);
+            
+            charts.brk = new Chart(ctxBrk, {
+                type: 'bar',
+                data: {
+                    labels: brokerNames,
+                    datasets: [{
+                        label: 'Closed Deals',
+                        data: dealCounts,
+                        backgroundColor: '#a855f7',
+                        borderRadius: 8
                     }]
                 },
                 options: { 
                     maintainAspectRatio: false, 
-                    plugins: { 
-                        legend: { position: 'bottom', labels: { color: '#94a3b8', font: { size: 10 } } } 
-                    } 
+                    scales: { 
+                        y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#64748b' } },
+                        x: { grid: { display: false }, ticks: { color: '#64748b' } }
+                    },
+                    plugins: { legend: { display: false } }
                 }
             });
         }
@@ -168,15 +187,12 @@
             const reader = new FileReader();
             reader.onload = async function(e) {
                 const rows = e.target.result.split("\n").map(r => r.split(","));
-                // Remove header if present in CSV
-                const cleanData = rows[0][0].toLowerCase().includes('id') ? rows.slice(1) : rows;
-                
                 await fetch(APPS_SCRIPT_URL, { 
                     method: "POST", 
                     mode: "no-cors", 
-                    body: JSON.stringify({sheet: sheetName, data: cleanData}) 
+                    body: JSON.stringify({sheet: sheetName, data: rows.slice(1)}) 
                 });
-                alert("AIP System: CSV Upload Queued for " + sheetName);
+                alert("AIP: Upload sent to Google Sheets for " + sheetName);
             };
             reader.readAsText(file);
         }
