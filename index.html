@@ -3,14 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RE-AI | Premium Supervisor</title>
+    <title>RE-AI | Elite Supervisor</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         body { background-color: #020617; color: #f8fafc; font-family: 'Inter', sans-serif; }
         .glass-card { background: rgba(30, 41, 59, 0.4); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.05); }
-        .sidebar-item { transition: all 0.2s; border-radius: 12px; margin: 4px 0; border: none; background: transparent; cursor: pointer; text-align: left; color: #94a3b8; }
+        .sidebar-item { transition: all 0.2s; border-radius: 12px; margin: 4px 0; border: none; background: transparent; cursor: pointer; text-align: left; color: #94a3b8; width: 100%; padding: 12px; display: flex; align-items: center; gap: 12px; }
         .sidebar-item:hover, .sidebar-item.active { background: #3b82f6; color: white; }
+        .chart-container { position: relative; height: 250px; width: 100%; }
     </style>
 </head>
 <body class="flex h-screen overflow-hidden">
@@ -20,104 +22,69 @@
             <h1 class="text-2xl font-black tracking-tighter text-blue-500">REAL<span class="text-white">ESTATE</span></h1>
             <p class="text-xs text-gray-500 font-bold uppercase tracking-widest">Supervisor Hub</p>
         </div>
-
         <nav class="flex-1">
-            <button onclick="showTab('dashboard', event)" class="sidebar-item active w-full flex items-center p-3 gap-3">
-                <i class="fas fa-chart-pie"></i> Dashboard
-            </button>
-            <button onclick="showTab('projects', event)" class="sidebar-item w-full flex items-center p-3 gap-3">
-                <i class="fas fa-building"></i> Projects
-            </button>
-            <button onclick="showTab('units', event)" class="sidebar-item w-full flex items-center p-3 gap-3">
-                <i class="fas fa-door-open"></i> Units
-            </button>
-            <button onclick="showTab('brokers', event)" class="sidebar-item w-full flex items-center p-3 gap-3">
-                <i class="fas fa-user-tie"></i> Brokers
-            </button>
-            <button onclick="showTab('clients', event)" class="sidebar-item w-full flex items-center p-3 gap-3">
-                <i class="fas fa-users"></i> Deals & Clients
-            </button>
+            <button onclick="showTab('dashboard', event)" class="sidebar-item active"><i class="fas fa-chart-line"></i> Analytics</button>
+            <button onclick="showTab('projects', event)" class="sidebar-item"><i class="fas fa-city"></i> Projects</button>
+            <button onclick="showTab('units', event)" class="sidebar-item"><i class="fas fa-key"></i> Units</button>
+            <button onclick="showTab('brokers', event)" class="sidebar-item"><i class="fas fa-user-shield"></i> Brokers</button>
+            <button onclick="showTab('clients', event)" class="sidebar-item"><i class="fas fa-handshake"></i> Deals</button>
         </nav>
-
-        <div class="mt-auto pt-6 border-t border-gray-800 text-[10px] text-gray-500 italic">
-            CSV HINT: UnitID, ProjID, Type, Price, Sqm, Status, Images
-        </div>
     </aside>
 
     <main class="flex-1 overflow-y-auto p-10 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-blue-900/10 via-slate-950 to-slate-950">
         
         <section id="tab-dashboard">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-10">
-                <div class="glass-card p-8 rounded-3xl relative overflow-hidden">
-                    <p class="text-gray-400 text-xs font-bold uppercase mb-2">Portfolio Projects</p>
-                    <h2 id="count-projects" class="text-5xl font-black">--</h2>
+                <div class="glass-card p-6 rounded-2xl border-l-4 border-blue-500">
+                    <p class="text-gray-400 text-xs font-bold uppercase">Projects</p>
+                    <h2 id="count-projects" class="text-4xl font-black">--</h2>
                 </div>
-                <div class="glass-card p-8 rounded-3xl border-b-4 border-blue-500">
-                    <p class="text-gray-400 text-xs font-bold uppercase mb-2">Available Inventory</p>
-                    <h2 id="count-units" class="text-5xl font-black text-blue-400">--</h2>
+                <div class="glass-card p-6 rounded-2xl border-l-4 border-green-500">
+                    <p class="text-gray-400 text-xs font-bold uppercase">Active Inventory</p>
+                    <h2 id="count-units" class="text-4xl font-black text-green-400">--</h2>
                 </div>
-                <div class="glass-card p-8 rounded-3xl border-b-4 border-purple-500">
-                    <p class="text-gray-400 text-xs font-bold uppercase mb-2">AI Tracked Deals</p>
-                    <h2 id="count-deals" class="text-5xl font-black text-purple-400">--</h2>
+                <div class="glass-card p-6 rounded-2xl border-l-4 border-purple-500">
+                    <p class="text-gray-400 text-xs font-bold uppercase">Open Deals</p>
+                    <h2 id="count-deals" class="text-4xl font-black text-purple-400">--</h2>
                 </div>
             </div>
-            <div class="glass-card rounded-3xl p-8">
-                <h3 class="text-xl font-bold mb-6">System Status</h3>
-                <div id="recent-activity"><p class="text-gray-500 italic">Connecting...</p></div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10">
+                <div class="glass-card p-6 rounded-3xl">
+                    <h3 class="font-bold mb-4 text-gray-300">Inventory Status</h3>
+                    <div class="chart-container"><canvas id="inventoryChart"></canvas></div>
+                </div>
+                <div class="glass-card p-6 rounded-3xl">
+                    <h3 class="font-bold mb-4 text-gray-300">Broker Performance</h3>
+                    <div class="chart-container"><canvas id="brokerChart"></canvas></div>
+                </div>
             </div>
         </section>
 
         <section id="tab-projects" class="hidden">
-            <h2 class="text-3xl font-bold mb-8">Projects</h2>
-            <div class="glass-card rounded-2xl overflow-hidden">
-                <table class="w-full text-left">
-                    <thead class="bg-white/5 text-gray-400 text-xs uppercase font-bold">
-                        <tr><th class="p-4">Project</th><th class="p-4">Developer</th><th class="p-4">Area</th></tr>
-                    </thead>
-                    <tbody id="project-rows"></tbody>
-                </table>
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold">Projects Management</h2>
+                <label class="bg-blue-600 px-4 py-2 rounded-lg cursor-pointer text-sm font-bold">Import Projects <input type="file" class="hidden" onchange="handleFileUpload(event, 'Projects')"></label>
             </div>
+            <div class="glass-card rounded-xl overflow-x-auto"><table class="w-full text-left text-sm"><thead id="head-projects" class="bg-white/5"></thead><tbody id="rows-projects"></tbody></table></div>
         </section>
 
         <section id="tab-units" class="hidden">
-            <div class="flex justify-between items-center mb-8">
-                <h2 class="text-3xl font-bold">Unit Inventory</h2>
-                <label class="bg-blue-600 px-6 py-2 rounded-xl text-sm font-bold cursor-pointer hover:bg-blue-700">
-                    Bulk Import CSV <input type="file" class="hidden" onchange="handleFileUpload(event)">
-                </label>
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold">Units Inventory</h2>
+                <label class="bg-green-600 px-4 py-2 rounded-lg cursor-pointer text-sm font-bold">Import Units <input type="file" class="hidden" onchange="handleFileUpload(event, 'Units')"></label>
             </div>
-            <div class="glass-card rounded-2xl overflow-hidden">
-                <table class="w-full text-left">
-                    <thead class="bg-white/5 text-gray-400 text-xs uppercase font-bold">
-                        <tr><th class="p-4">UnitID</th><th class="p-4">Project</th><th class="p-4">Price</th><th class="p-4">Status</th></tr>
-                    </thead>
-                    <tbody id="unit-rows"></tbody>
-                </table>
-            </div>
+            <div class="glass-card rounded-xl overflow-x-auto"><table class="w-full text-left text-sm"><thead id="head-units" class="bg-white/5"></thead><tbody id="rows-units"></tbody></table></div>
         </section>
 
         <section id="tab-brokers" class="hidden">
-            <h2 class="text-3xl font-bold mb-8">Brokers</h2>
-            <div class="glass-card rounded-2xl overflow-hidden">
-                <table class="w-full text-left">
-                    <thead class="bg-white/5 text-gray-400 text-xs uppercase font-bold">
-                        <tr><th class="p-4">Name</th><th class="p-4">Area</th><th class="p-4">Closed Deals</th></tr>
-                    </thead>
-                    <tbody id="broker-rows"></tbody>
-                </table>
-            </div>
+            <h2 class="text-2xl font-bold mb-6">Brokers</h2>
+            <div class="glass-card rounded-xl overflow-x-auto"><table class="w-full text-left text-sm"><thead id="head-brokers" class="bg-white/5"></thead><tbody id="rows-brokers"></tbody></table></div>
         </section>
 
         <section id="tab-clients" class="hidden">
-            <h2 class="text-3xl font-bold mb-8">Deals & Clients</h2>
-            <div class="glass-card rounded-2xl overflow-hidden">
-                <table class="w-full text-left">
-                    <thead class="bg-white/5 text-gray-400 text-xs uppercase font-bold">
-                        <tr><th class="p-4">Client</th><th class="p-4">Budget</th><th class="p-4">Broker</th><th class="p-4">Status</th></tr>
-                    </thead>
-                    <tbody id="client-rows"></tbody>
-                </table>
-            </div>
+            <h2 class="text-2xl font-bold mb-6">Deals & AI Guidance</h2>
+            <div class="glass-card rounded-xl overflow-x-auto"><table class="w-full text-left text-sm"><thead id="head-clients" class="bg-white/5"></thead><tbody id="rows-clients"></tbody></table></div>
         </section>
 
     </main>
@@ -125,55 +92,59 @@
     <script>
         const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbztNYbL5qKJjyk9zwqIzXRIK7-J1YyGFXeeIw0b17rOYiPYuHCVTYgaySWtmvveIV4HaQ/exec";
         let masterData = {};
+        let charts = {};
 
         function showTab(tabName, event) {
             document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
             document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
             document.getElementById('tab-' + tabName).classList.remove('hidden');
-            if (event) event.currentTarget.classList.add('active');
+            if(event) event.currentTarget.classList.add('active');
             
-            if (tabName === 'projects') renderTable('project-rows', masterData.projectsList);
-            if (tabName === 'units') renderTable('unit-rows', masterData.unitsList, [0, 1, 3, 5]);
-            if (tabName === 'brokers') renderTable('broker-rows', masterData.brokersList, [1, 3, 4]);
-            if (tabName === 'clients') renderTable('client-rows', masterData.clientsList, [1, 4, 5, 6]);
+            if(tabName !== 'dashboard') renderFullTable(tabName);
         }
 
         window.handleData = function(data) {
             masterData = data;
-            document.getElementById('count-projects').innerText = data.projectsCount || 0;
-            document.getElementById('count-units').innerText = data.availableUnits || 0;
-            document.getElementById('count-deals').innerText = data.openDeals || 0;
-            document.getElementById('recent-activity').innerHTML = `<p class="text-green-400 text-sm">Live Sync Successful.</p>`;
+            document.getElementById('count-projects').innerText = data.projectsCount;
+            document.getElementById('count-units').innerText = data.availableUnits;
+            document.getElementById('count-deals').innerText = data.openDeals;
+            updateCharts();
         };
 
-        function renderTable(elementId, list, cols = [2, 3, 1]) {
-            const container = document.getElementById(elementId);
-            container.innerHTML = "";
-            if (!list || list.length <= 1) return;
-            for (let i = 1; i < list.length; i++) {
-                let rowHtml = `<tr class="border-b border-white/5 hover:bg-white/5 transition">`;
-                cols.forEach(c => rowHtml += `<td class="p-4 text-gray-300">${list[i][c] || ''}</td>`);
-                rowHtml += `</tr>`;
-                container.innerHTML += rowHtml;
-            }
+        function renderFullTable(type) {
+            const data = masterData[type + 'List'];
+            const head = document.getElementById('head-' + type);
+            const body = document.getElementById('rows-' + type);
+            if(!data || data.length === 0) return;
+
+            head.innerHTML = `<tr>${data[0].map(h => `<th class="p-4 font-bold text-blue-400 border-b border-gray-800">${h}</th>`).join('')}</tr>`;
+            body.innerHTML = data.slice(1).map(row => `<tr class="border-b border-white/5 hover:bg-white/5">${row.map(cell => `<td class="p-4 text-gray-400">${cell}</td>`).join('')}</tr>`).join('');
         }
 
-        function handleFileUpload(event) {
+        function updateCharts() {
+            const ctxInv = document.getElementById('inventoryChart').getContext('2d');
+            if(charts.inv) charts.inv.destroy();
+            charts.inv = new Chart(ctxInv, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Available', 'Sold', 'Reserved'],
+                    datasets: [{
+                        data: [masterData.availableUnits, (masterData.unitsList.length - masterData.availableUnits), 2],
+                        backgroundColor: ['#4ade80', '#f87171', '#fbbf24'],
+                        borderWidth: 0
+                    }]
+                },
+                options: { maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8' } } } }
+            });
+        }
+
+        function handleFileUpload(event, sheetName) {
             const file = event.target.files[0];
             const reader = new FileReader();
             reader.onload = async function(e) {
-                const csvData = e.target.result.split("\n").map(r => r.split(","));
-                document.getElementById('recent-activity').innerHTML = `<p class="text-blue-400 animate-pulse">Uploading CSV...</p>`;
-                
-                try {
-                    await fetch(APPS_SCRIPT_URL, {
-                        method: "POST",
-                        mode: "no-cors",
-                        body: JSON.stringify({sheet: "Units", data: csvData})
-                    });
-                    alert("Upload request sent! Refreshing in 3 seconds.");
-                    setTimeout(() => location.reload(), 3000);
-                } catch (err) { alert("Upload failed: " + err); }
+                const rows = e.target.result.split("\n").map(r => r.split(","));
+                await fetch(APPS_SCRIPT_URL, { method: "POST", mode: "no-cors", body: JSON.stringify({sheet: sheetName, data: rows.slice(1)}) });
+                alert("Upload queued! Please refresh in a few seconds.");
             };
             reader.readAsText(file);
         }
@@ -187,4 +158,3 @@
     </script>
 </body>
 </html>
-
