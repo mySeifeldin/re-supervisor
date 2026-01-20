@@ -47,50 +47,50 @@
         // الرابط الجديد بعد الـ Deploy
         const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxb1XhuqEQopt0KWYnPkYR7INGtJF2_NKhdCtP15NfD7Ebn6mb0aOWEamrhkCn3_hYIyg/exec"
         async function handleFlow() {
-            const input = document.getElementById('user-input');
-            const chat = document.getElementById('chat-box');
-            const msg = input.value;
-            if(!msg) return;
+        const input = document.getElementById('user-input');
+        const chat = document.getElementById('chat-box');
+        const msg = input.value;
+        if(!msg) return;
 
-            chat.innerHTML += `<div class="self-end bg-blue-600/20 p-3 rounded-2xl text-blue-100">أنا: ${msg}</div>`;
-            input.value = "";
-            document.getElementById('status-indicator').innerText = "بيفكر ويرد...";
+        // إضافة رسالتك للشات
+        chat.innerHTML += `<div class="self-end bg-blue-600/20 p-3 rounded-2xl text-blue-100">أنا: ${msg}</div>`;
+        input.value = "";
+        document.getElementById('status-indicator').innerText = "بيفكر ويرد...";
+        chat.scrollTop = chat.scrollHeight;
 
-            try {
-                // استخدام mode: 'no-cors' أو التعامل مع الـ Redirect بتاع جوجل
-                const response = await fetch(APPS_SCRIPT_URL, {
-                    method: "POST",
-                    mode: 'no-cors', // مهم جداً لبعض حالات الـ Scripts
-                    headers: { "Content-Type": "text/plain" }, // جوجل بيفضل ده في الـ CORS
-                    body: JSON.stringify({ action: "processAI", message: msg })
-                });
+        try {
+            console.log("📡 Sending request to Apps Script...");
+            
+            const response = await fetch(APPS_SCRIPT_URL, {
+                method: "POST",
+                body: JSON.stringify({ action: "processAI", message: msg })
+            });
 
-                // ملاحظة: مع Apps Script الـ fetch ممكن يرجع "opaque" لو استخدمنا no-cors
-                // الحل الأضمن هو استخدام التحويل لـ GET لو الـ POST فشل، أو التأكد من الـ Deploy
-                // هنستخدم الطريقة العادية ونعتمد على تصحيح السكريبت فوق
-                
-                const normalResponse = await fetch(APPS_SCRIPT_URL, {
-                    method: "POST",
-                    body: JSON.stringify({ action: "processAI", message: msg })
-                });
+            // تحويل الرد لـ JSON
+            const data = await response.json();
+            console.log("📦 Data received:", data);
 
-                const data = await normalResponse.json();
-                
-                if (data.reply) {
-                    chat.innerHTML += `<div class="self-start bg-white/5 p-3 rounded-2xl text-gray-300">AIP: ${data.reply}</div>`;
-                    chat.scrollTop = chat.scrollHeight;
+            if (data.reply) {
+                // عرض رد الـ AI
+                chat.innerHTML += `<div class="self-start bg-white/5 p-3 rounded-2xl text-gray-300">AIP: ${data.reply}</div>`;
+                chat.scrollTop = chat.scrollHeight;
 
-                    if (data.audio) {
-                        const audio = new Audio("data:audio/wav;base64," + data.audio);
-                        audio.play();
-                    }
+                // تشغيل الصوت
+                if (data.audio) {
+                    console.log("🔊 Playing Audio...");
+                    const audio = new Audio("data:audio/wav;base64," + data.audio);
+                    audio.play().catch(e => console.error("🔇 Audio Playback Error:", e));
                 }
-                document.getElementById('status-indicator').innerText = "متصل";
-            } catch (err) {
-                console.error("CRASH:", err);
-                document.getElementById('status-indicator').innerText = "خطأ في الاتصال - تأكد من الـ Deploy";
+            } else if (data.error) {
+                console.error("❌ Script Error:", data.error);
             }
+
+            document.getElementById('status-indicator').innerText = "متصل";
+        } catch (err) {
+            console.error("🔥 Connection Error:", err);
+            document.getElementById('status-indicator').innerText = "خطأ في الاتصال";
         }
+    }
 
         function toggleSTT() {
             const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
