@@ -10,81 +10,106 @@
         body { background-color: #020617; color: #f8fafc; font-family: 'Inter', sans-serif; }
         .glass-card { background: rgba(30, 41, 59, 0.4); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.05); }
         .ai-glow { box-shadow: 0 0 20px rgba(59, 130, 246, 0.2); }
+        /* استايل الجدول الجانبي */
+        .schedule-item { border-right: 4px solid #3b82f6; transition: all 0.3s; }
+        .schedule-item:hover { background: rgba(59, 130, 246, 0.1); transform: translateX(-5px); }
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 10px; }
     </style>
 </head>
-<body class="p-6 md:p-10 bg-[radial-gradient(circle_at_bottom_left,_var(--tw-gradient-stops))] from-blue-900/20 via-slate-950 to-slate-950">
+<body class="p-4 md:p-8 bg-[radial-gradient(circle_at_bottom_left,_var(--tw-gradient-stops))] from-blue-900/20 via-slate-950 to-slate-950">
 
-<div class="max-w-6xl mx-auto">
-    <header class="flex justify-between items-center mb-10">
+<div class="max-w-7xl mx-auto">
+    <header class="flex justify-between items-center mb-8">
         <div class="flex items-center gap-4">
             <div class="p-3 bg-blue-600 rounded-2xl ai-glow">
                 <i class="fas fa-robot text-2xl text-white"></i>
             </div>
             <div>
-                <h1 class="text-2xl font-black uppercase tracking-tighter">
-                    BROKER <span class="text-blue-500">AIP</span>
-                </h1>
-                <p class="text-gray-500 text-xs font-bold uppercase tracking-widest">
-                    Egyptian AI Real Estate Expert
-                </p>
+                <h1 class="text-2xl font-black uppercase tracking-tighter">BROKER <span class="text-blue-500">AIP</span></h1>
+                <p class="text-gray-500 text-[10px] font-bold uppercase tracking-widest">Expert Sales Manager Mode</p>
             </div>
         </div>
     </header>
 
-    <div class="glass-card p-8 rounded-3xl">
-        <div class="bg-black/40 rounded-2xl p-6 h-80 overflow-y-auto mb-6 text-sm flex flex-col gap-4 shadow-inner" id="chat-box">
-            <div class="self-start bg-white/5 p-3 rounded-2xl text-gray-300 italic">
-                بمسي عليك يا ريس! اؤمرني محتاج مساعدة في أي بيعة؟
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <div class="lg:col-span-1 space-y-4">
+            <div class="glass-card p-5 rounded-3xl border-blue-500/20 h-[600px] flex flex-col">
+                <h3 class="font-bold text-blue-400 mb-4 flex items-center gap-2">
+                    <i class="fas fa-calendar-alt"></i> جدول معاينات اليوم
+                </h3>
+                <div id="side-schedule" class="space-y-3 overflow-y-auto flex-1 pr-2">
+                    <div class="text-gray-500 text-xs text-center mt-10">الـ AI بيحلل الداتا عشان يجهز لك الجدول...</div>
+                </div>
+                <div class="mt-4 pt-4 border-t border-white/5">
+                    <p class="text-[10px] text-gray-500 uppercase">AIP Analysis Active</p>
+                </div>
             </div>
         </div>
 
-        <div class="flex gap-3">
-            <input type="text" id="user-input"
-                   class="flex-1 bg-gray-900/50 border border-gray-800 rounded-xl px-4 text-sm focus:outline-none"
-                   placeholder="اسأل البرنس...">
-            <button id="mic-btn" onclick="toggleSTT()"
-                    class="bg-gray-800 px-4 rounded-xl hover:bg-gray-700 transition-all">
-                <i class="fas fa-microphone" id="mic-icon"></i>
-            </button>
-            <button onclick="handleFlow()"
-                    class="bg-blue-600 px-8 rounded-xl hover:bg-blue-700 transition-all font-bold">
-                ارسل
-            </button>
-        </div>
+        <div class="lg:col-span-3 space-y-6">
+            <div class="glass-card p-8 rounded-3xl relative">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="font-bold flex items-center gap-2 text-purple-400"><i class="fas fa-comment-dots"></i> Sales Manager Support</h3>
+                    <div id="status-indicator" class="text-[9px] bg-blue-900/30 px-2 py-1 rounded text-blue-300 uppercase">متصل</div>
+                </div>
 
-        <div id="status-indicator"
-             class="mt-4 text-[10px] text-gray-500 text-center uppercase">
-            جاهز
+                <div class="bg-black/40 rounded-2xl p-6 h-96 overflow-y-auto mb-6 text-sm flex flex-col gap-4 shadow-inner" id="chat-box">
+                    <div class="self-start bg-white/5 p-4 rounded-2xl text-gray-300 italic">
+                        بمسي عليك يا ريس! الجداول كلها قدامي والعملاء لقطة.. نخلص إيه النهاردة؟
+                    </div>
+                </div>
+
+                <div class="flex gap-3">
+                    <input type="text" id="user-input"
+                           class="flex-1 bg-gray-900/50 border border-gray-800 rounded-xl px-4 text-sm focus:outline-none focus:border-blue-500"
+                           placeholder="اسأل AIP عن خطة الإقناع أو العملاء...">
+                    <button id="mic-btn" onclick="toggleSTT()"
+                            class="bg-gray-800 px-4 rounded-xl hover:bg-gray-700 transition-all">
+                        <i class="fas fa-microphone" id="mic-icon"></i>
+                    </button>
+                    <button onclick="handleFlow()"
+                            class="bg-blue-600 px-8 rounded-xl hover:bg-blue-700 transition-all font-bold">
+                        ارسل
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
 <script>
-const APPS_SCRIPT_URL =
-"https://script.google.com/macros/s/AKfycbzVG7ISAV7W-tqMJP2vrLUHwJHyoxbTR6uu3Qp-YvxtmkP_suLucao4ZDxfdS3k4WvPVA/exec";
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzVG7ISAV7W-tqMJP2vrLUHwJHyoxbTR6uu3Qp-YvxtmkP_suLucao4ZDxfdS3k4WvPVA/exec";
 
-// 🔊 Web Audio PCM Player (24kHz / 16bit)
+// دالة تحديث الجدول الجانبي
+function updateSchedule(replyText) {
+    const scheduleBox = document.getElementById('side-schedule');
+    
+    // محاولة استخراج النقاط التي تبدو كجدول من رد الـ AI
+    const lines = replyText.split('\n').filter(line => line.includes('-') || line.includes(':'));
+    
+    if (lines.length > 2) {
+        scheduleBox.innerHTML = ''; // مسح القديم
+        lines.forEach(line => {
+            const item = document.createElement('div');
+            item.className = 'schedule-item bg-white/5 p-3 rounded-xl text-[11px] text-gray-300';
+            item.innerHTML = line.replace(/[-*:]/g, '').trim();
+            scheduleBox.appendChild(item);
+        });
+    }
+}
+
+// 🔊 الـ Audio Player (زي ما هو ممنوع اللمس)
 async function playPCM(base64PCM) {
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)({
-        sampleRate: 24000
-    });
-
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 24000 });
     const binary = atob(base64PCM);
     const buffer = new ArrayBuffer(binary.length);
     const view = new Uint8Array(buffer);
-
-    for (let i = 0; i < binary.length; i++) {
-        view[i] = binary.charCodeAt(i);
-    }
-
+    for (let i = 0; i < binary.length; i++) { view[i] = binary.charCodeAt(i); }
     const pcm16 = new Int16Array(buffer);
     const audioBuffer = audioCtx.createBuffer(1, pcm16.length, 24000);
     const channel = audioBuffer.getChannelData(0);
-
-    for (let i = 0; i < pcm16.length; i++) {
-        channel[i] = pcm16[i] / 32768;
-    }
-
+    for (let i = 0; i < pcm16.length; i++) { channel[i] = pcm16[i] / 32768; }
     const source = audioCtx.createBufferSource();
     source.buffer = audioBuffer;
     source.connect(audioCtx.destination);
@@ -97,9 +122,9 @@ async function handleFlow() {
     const msg = input.value;
     if (!msg) return;
 
-    chat.innerHTML += `<div class="self-end bg-blue-600/20 p-3 rounded-2xl text-blue-100">أنا: ${msg}</div>`;
+    chat.innerHTML += `<div class="self-end bg-blue-600/20 p-3 rounded-2xl text-blue-100 max-w-[80%]">أنا: ${msg}</div>`;
     input.value = "";
-    document.getElementById('status-indicator').innerText = "بيفكر ويرد...";
+    document.getElementById('status-indicator').innerText = "بيحلل الجداول...";
     chat.scrollTop = chat.scrollHeight;
 
     try {
@@ -109,17 +134,15 @@ async function handleFlow() {
         });
 
         const data = await response.json();
-        console.log("📦 Data:", data);
 
         if (data.reply) {
-            chat.innerHTML += `<div class="self-start bg-white/5 p-3 rounded-2xl text-gray-300">AIP: ${data.reply}</div>`;
+            chat.innerHTML += `<div class="self-start bg-white/5 p-4 rounded-2xl text-gray-300 max-w-[80%]">AIP: ${data.reply}</div>`;
             chat.scrollTop = chat.scrollHeight;
+            // تحديث الجدول الجانبي بناءً على الرد
+            updateSchedule(data.reply);
         }
 
-        if (data.audio) {
-            console.log("🔊 Playing PCM Audio");
-            playPCM(data.audio);
-        }
+        if (data.audio) { playPCM(data.audio); }
 
         document.getElementById('status-indicator').innerText = "متصل";
     } catch (err) {
@@ -131,21 +154,14 @@ async function handleFlow() {
 function toggleSTT() {
     const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
     recognition.lang = 'ar-EG';
-    recognition.onstart = () =>
-        document.getElementById('mic-icon').className =
-            "fas fa-circle text-red-500 animate-pulse";
-
+    recognition.onstart = () => document.getElementById('mic-icon').className = "fas fa-circle text-red-500 animate-pulse";
     recognition.onresult = (event) => {
-        document.getElementById('user-input').value =
-            event.results[0][0].transcript;
-        document.getElementById('mic-icon').className =
-            "fas fa-microphone";
+        document.getElementById('user-input').value = event.results[0][0].transcript;
+        document.getElementById('mic-icon').className = "fas fa-microphone";
         handleFlow();
     };
-
     recognition.start();
 }
 </script>
-
 </body>
 </html>
