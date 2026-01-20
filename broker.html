@@ -133,31 +133,29 @@
             } catch(e) { console.error("Link Failed"); }
         };
 
-        function renderClients(clients) {
-            const list = document.getElementById('client-list');
-            list.innerHTML = clients.map(c => `
-                <div onclick="selectClient('${c[0]}', '${c[1]}', '${c[3]}', '${c[4]}', '${c[10]}')" class="p-3 bg-white/5 rounded-2xl cursor-pointer hover:bg-blue-600/20 transition-all group">
-                    <p class="font-bold text-xs group-hover:text-blue-400">${c[0]}</p>
-                    <p class="text-[9px] text-gray-500">${c[3]} - ${c[4]} EGP</p>
-                </div>
-            `).join('');
-        }
+       function renderClients(clients) {
+    const list = document.getElementById('client-list');
+    list.innerHTML = clients.map(c => `
+        <div onclick="selectClient('${c[1]}', '${c[2]}', '${c[3]}', '${c[4]}', '${c[10]}')" class="p-3 bg-white/5 rounded-2xl cursor-pointer hover:bg-blue-600/20 transition-all group">
+            <p class="font-bold text-xs group-hover:text-blue-400">${c[1]}</p> <p class="text-[9px] text-gray-500">${c[0]} | ${c[3]} - ${c[4]} EGP</p> </div>
+    `).join('');
+}
 
         function selectClient(name, phone, area, budget, req) {
-            // UI State
-            document.getElementById('active-client-header').style.opacity = "1";
-            document.getElementById('selected-client-name').innerText = name;
-            document.getElementById('client-initial').innerText = name.charAt(0);
-            document.getElementById('wa-btn').onclick = () => window.open(`https://wa.me/${phone}`);
-            
-            // 🗺️ Drawing Architecture Update
-            drawNeuralMap(name, area, budget, req);
+    // UI State
+    document.getElementById('active-client-header').style.opacity = "1";
+    document.getElementById('selected-client-name').innerText = name; // هيعرض "Omar Ali"
+    document.getElementById('client-initial').innerText = name.charAt(0);
+    document.getElementById('wa-btn').onclick = () => window.open(`https://wa.me/${phone}`);
+    
+    // 🗺️ Drawing Architecture Update
+    drawNeuralMap(name, area, budget, req);
 
-            // AI Trigger
-            document.getElementById('user-input').value = `حلل لي حالة العميل ${name} اللي طالب ${req}`;
-            handleFlow();
-            if(window.innerWidth < 1024) togglePanel('left');
-        }
+    // AI Trigger
+    document.getElementById('user-input').value = `بروز لي حالة العميل ${name} اللي طالب ${req} واقترح أول خطوة`;
+    handleFlow();
+    if(window.innerWidth < 1024) togglePanel('left');
+}
 
         function drawNeuralMap(name, area, budget, req) {
             const specs = document.getElementById('full-client-data');
