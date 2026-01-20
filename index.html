@@ -101,10 +101,20 @@
             <div class="glass-card rounded-xl overflow-x-auto"><table class="w-full text-left text-sm"><thead id="head-brokers" class="bg-white/5"></thead><tbody id="rows-brokers"></tbody></table></div>
         </section>
 
-        <section id="tab-clients" class="hidden">
-            <h2 class="text-2xl font-bold mb-6">Deals & Live AI Guidance</h2>
-            <div class="glass-card rounded-xl overflow-x-auto"><table class="w-full text-left text-sm"><thead id="head-clients" class="bg-white/5"></thead><tbody id="rows-clients"></tbody></table></div>
-        </section>
+       <section id="tab-clients" class="hidden">
+    <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-bold">Deals & Live AI Guidance</h2>
+        <label class="bg-purple-600 px-4 py-2 rounded-lg cursor-pointer text-sm font-bold transition hover:bg-purple-700">
+            Import Deals CSV <input type="file" class="hidden" onchange="handleFileUpload(event, 'Clients')">
+        </label>
+    </div>
+    <div class="glass-card rounded-xl overflow-x-auto">
+        <table class="w-full text-left text-sm">
+            <thead id="head-clients" class="bg-white/5"></thead>
+            <tbody id="rows-clients"></tbody>
+        </table>
+    </div>
+</section>
 
     </main>
 
@@ -190,4 +200,5 @@
     </script>
 </body>
 </html>
+
 
