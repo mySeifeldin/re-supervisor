@@ -1,18 +1,15 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AIP | Broker Pro-Agent</title>
+    <title>BROKER AIP | Pro-Agent</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         body { background-color: #020617; color: #f8fafc; font-family: 'Inter', sans-serif; }
         .glass-card { background: rgba(30, 41, 59, 0.4); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.05); }
-        .ai-glow { box-shadow: 0 0 20px rgba(59, 130, 246, 0.2); border: 1px solid rgba(59, 130, 246, 0.4); }
-        .timeline-dot { width: 12px; height: 12px; background: #3b82f6; border-radius: 50%; position: absolute; left: -6px; top: 24px; }
-        ::-webkit-scrollbar { width: 5px; }
-        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 10px; }
+        .ai-glow { box-shadow: 0 0 20px rgba(59, 130, 246, 0.2); }
     </style>
 </head>
 <body class="p-6 md:p-10 bg-[radial-gradient(circle_at_bottom_left,_var(--tw-gradient-stops))] from-blue-900/20 via-slate-950 to-slate-950">
@@ -20,125 +17,134 @@
     <div class="max-w-6xl mx-auto">
         <header class="flex justify-between items-center mb-10">
             <div class="flex items-center gap-4">
-                <img src="logo.png" class="w-16 h-auto" onerror="this.src='https://via.placeholder.com/60x60/3b82f6/ffffff?text=AIP'">
+                <div class="p-3 bg-blue-600 rounded-2xl ai-glow">
+                    <i class="fas fa-robot text-2xl text-white"></i>
+                </div>
                 <div>
                     <h1 class="text-2xl font-black uppercase tracking-tighter">BROKER <span class="text-blue-500">AIP</span></h1>
-                    <p id="broker-name" class="text-gray-500 text-xs font-bold uppercase tracking-widest">Syncing Profile...</p>
+                    <p class="text-gray-500 text-xs font-bold uppercase tracking-widest">Egyptian AI Real Estate Expert</p>
                 </div>
-            </div>
-            <div class="text-right">
-                <p class="text-[10px] text-blue-400 font-bold uppercase tracking-widest">Active Area</p>
-                <p id="broker-area" class="text-lg font-bold">--</p>
             </div>
         </header>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div class="lg:col-span-2 space-y-8">
-                <div class="glass-card p-8 rounded-3xl border-t border-white/5">
-                    <div class="flex justify-between items-center mb-6">
-                        <h3 class="font-bold flex items-center gap-2 text-purple-400"><i class="fas fa-comment-dots"></i> AI Sales Coach</h3>
-                        <span class="text-[9px] bg-purple-900/30 px-2 py-1 rounded text-purple-300 uppercase">Neural Voice Active</span>
-                    </div>
-                    <div class="bg-black/40 rounded-2xl p-6 h-64 overflow-y-auto mb-6 text-sm flex flex-col gap-4 shadow-inner" id="ai-coach-chat">
-                        <div class="text-gray-500 italic text-center">بمسي عليك يا ريس! اؤمرني محتاج مساعدة في أي بيعة؟</div>
-                    </div>
-                    <div class="flex gap-3">
-                        <input type="text" id="coach-input" class="flex-1 bg-gray-900/50 border border-gray-800 rounded-xl px-4 text-sm focus:outline-none focus:border-blue-500" placeholder="اسأل البرنس...">
-                        <button onclick="askCoach()" class="bg-blue-600 px-6 rounded-xl hover:bg-blue-700 transition-all font-bold">ارسل</button>
-                    </div>
+        <div class="grid grid-cols-1 gap-8">
+            <div class="glass-card p-8 rounded-3xl">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="font-bold flex items-center gap-2 text-purple-400"><i class="fas fa-comment-dots"></i> مساعد المبيعات الذكي</h3>
+                    <div id="status-indicator" class="text-[9px] bg-gray-800 px-2 py-1 rounded text-gray-400 uppercase">جاهز</div>
+                </div>
+                
+                <div class="bg-black/40 rounded-2xl p-6 h-80 overflow-y-auto mb-6 text-sm flex flex-col gap-4 shadow-inner" id="chat-box">
+                    <div class="self-start bg-white/5 p-3 rounded-2xl text-gray-300 italic">بمسي عليك يا ريس! اؤمرني محتاج مساعدة في أي بيعة؟</div>
+                </div>
+
+                <div class="flex gap-3">
+                    <input type="text" id="user-input" class="flex-1 bg-gray-900/50 border border-gray-800 rounded-xl px-4 text-sm focus:outline-none focus:border-blue-500" placeholder="اسأل البرنس...">
+                    <button id="mic-btn" onclick="toggleSTT()" class="bg-gray-800 px-4 rounded-xl hover:bg-gray-700 transition-all">
+                        <i class="fas fa-microphone" id="mic-icon"></i>
+                    </button>
+                    <button onclick="handleFlow()" class="bg-blue-600 px-8 rounded-xl hover:bg-blue-700 transition-all font-bold">ارسل</button>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        // حط الرابط الجديد هنا
-        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzv0d8v8ij52jc1NdoZsppaQG4bey_HGbwRRQbKu4i2-PRiGbP5GehePnzO4Kw3o5ht/exec";
+        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyjH_v4pm926ftHsxMkS6wmirT6x5DGrRUZYvkLxAqYAZr64kS5gljfFPmhSwdJ5FOM/exec";
+        const GEMINI_API_KEY = "AIzaSyDEbTbjAfEY8xUQi371eOrtq8QyQOf70dI";
+        
+        let token = "";
+        let projectId = "";
 
-        async function askCoach() {
-            console.log("--- STARTING FLOW ---");
-            const input = document.getElementById('coach-input');
-            const chat = document.getElementById('ai-coach-chat');
-            const msg = input.value;
-            if(!msg) return;
+        // 1. AUTH: Fetch Token from Apps Script on Load
+        window.onload = async () => {
+            const resp = await fetch(APPS_SCRIPT_URL, {
+                method: "POST",
+                body: JSON.stringify({ action: "getAccessToken" })
+            });
+            const data = await resp.json();
+            token = data.token;
+            projectId = data.project_id;
+            document.getElementById('status-indicator').innerText = "متصل";
+        };
 
-            chat.innerHTML += `<div class="self-end bg-blue-600/20 p-3 rounded-2xl text-blue-100">أنا: ${msg}</div>`;
+        async function handleFlow() {
+            const input = document.getElementById('user-input');
+            const text = input.value;
+            if (!text) return;
+
+            addMessage("أنا", text, "self-end bg-blue-600/20 text-blue-100");
             input.value = "";
+            document.getElementById('status-indicator').innerText = "بيفكر...";
 
             try {
-                console.log("1. Fetching Brain Response...");
-             const brainResponse = await fetch(APPS_SCRIPT_URL, {
-    method: "POST",
-    headers: {
-        "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-        action: "askAIP",
-        message: msg
-    })
-});
+                // 2. BRAIN: Call Gemini Directly
+                const aiReply = await callGemini(text);
+                addMessage("AIP", aiReply, "self-start bg-white/5 text-gray-300");
 
-                const brainData = await brainResponse.json();
-                console.log("2. Brain Replied:", brainData.reply);
-
-                chat.innerHTML += `<div class="self-start bg-white/5 p-3 rounded-2xl text-gray-300">AIP: ${brainData.reply}</div>`;
-
-                console.log("3. Fetching Audio...");
-                const voiceResponse = await fetch(APPS_SCRIPT_URL, {
-    method: "POST",
-    headers: {
-        "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-        action: "getVoice",
-        text: aiReply
-    })
-});
-                const voiceData = await voiceResponse.json();
-
-                if (voiceData.audio) {
-                    console.log("4. SUCCESS: Audio Data Received. Length:", voiceData.audio.length);
-                    
-                    const binaryString = window.atob(voiceData.audio);
-                    const len = binaryString.length;
-                    const bytes = new Uint8Array(len);
-                    for (let i = 0; i < len; i++) { bytes[i] = binaryString.charCodeAt(i); }
-
-                    const wavHeader = createWavHeader(len, 24000); 
-                    const wavBlob = new Blob([wavHeader, bytes], { type: 'audio/wav' });
-                    const audioUrl = URL.createObjectURL(wavBlob);
-                    
-                    console.log("5. Playing Audio...");
-                    const audio = new Audio(audioUrl);
-                    audio.play().catch(e => console.error("Playback error:", e));
-                } else {
-                    console.error("4. ERROR: Audio data is empty in JSON");
-                }
-            } catch (err) {
-                console.error("FLOW CRASHED:", err);
+                // 3. TTS: Call Vertex AI Directly
+                document.getElementById('status-indicator').innerText = "بيتكلم...";
+                await generateAndPlaySpeech(aiReply);
+                document.getElementById('status-indicator').innerText = "متصل";
+            } catch (e) {
+                console.error(e);
+                document.getElementById('status-indicator').innerText = "خطأ";
             }
         }
 
-        function createWavHeader(dataLength, sampleRate) {
-            const buffer = new ArrayBuffer(44);
-            const view = new DataView(buffer);
-            const writeString = (offset, string) => {
-                for (let i = 0; i < string.length; i++) { view.setUint8(offset + i, string.charCodeAt(i)); }
+        async function callGemini(message) {
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
+            const sysInstruction = "أنت خبير عقارات مصري شاطر. اتكلم مصري عامية فقط (يا وحش، يا ريس، خلصانة). ممنوع الفصحى.";
+            
+            const resp = await fetch(url, {
+                method: "POST",
+                body: JSON.stringify({
+                    system_instruction: { parts: [{ text: sysInstruction }] },
+                    contents: [{ parts: [{ text: message }] }]
+                })
+            });
+            const data = await resp.json();
+            return data.candidates[0].content.parts[0].text;
+        }
+
+        async function generateAndPlaySpeech(text) {
+            const url = `https://us-central1-aiplatform.googleapis.com/v1beta1/projects/${projectId}/locations/us-central1/publishers/google/models/gemini-2.5-flash-preview-tts:generateContent`;
+            
+            const resp = await fetch(url, {
+                method: "POST",
+                headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    contents: [{ role: "user", parts: [{ text: "اتكلم مصري: " + text }] }],
+                    generationConfig: { 
+                        responseModalities: ["AUDIO"],
+                        speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: "Fenrir" } } }
+                    }
+                })
+            });
+            const data = await resp.json();
+            const b64Audio = data.candidates[0].content.parts[1].inlineData.data;
+            
+            const audioObj = new Audio("data:audio/wav;base64," + b64Audio);
+            audioObj.play();
+        }
+
+        function addMessage(sender, text, classes) {
+            const chat = document.getElementById('chat-box');
+            chat.innerHTML += `<div class="${classes} p-3 rounded-2xl max-w-[80%]">${sender}: ${text}</div>`;
+            chat.scrollTop = chat.scrollHeight;
+        }
+
+        // 4. STT: Basic Web Speech API
+        function toggleSTT() {
+            const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+            recognition.lang = 'ar-EG';
+            recognition.onstart = () => document.getElementById('mic-icon').className = "fas fa-circle text-red-500 animate-pulse";
+            recognition.onresult = (event) => {
+                document.getElementById('user-input').value = event.results[0][0].transcript;
+                document.getElementById('mic-icon').className = "fas fa-microphone";
+                handleFlow();
             };
-            writeString(0, 'RIFF');
-            view.setUint32(4, 36 + dataLength, true);
-            writeString(8, 'WAVE');
-            writeString(12, 'fmt ');
-            view.setUint32(16, 16, true);
-            view.setUint16(20, 1, true); 
-            view.setUint16(22, 1, true); 
-            view.setUint32(24, sampleRate, true);
-            view.setUint32(28, sampleRate * 2, true);
-            view.setUint16(32, 2, true);
-            view.setUint16(34, 16, true);
-            writeString(36, 'data');
-            view.setUint32(40, dataLength, true);
-            return buffer;
+            recognition.start();
         }
     </script>
 </body>
