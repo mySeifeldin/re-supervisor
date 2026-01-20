@@ -27,124 +27,72 @@
             </div>
         </header>
 
-        <div class="grid grid-cols-1 gap-8">
-            <div class="glass-card p-8 rounded-3xl">
-                <div class="flex justify-between items-center mb-6">
-                    <h3 class="font-bold flex items-center gap-2 text-purple-400"><i class="fas fa-comment-dots"></i> مساعد المبيعات الذكي</h3>
-                    <div id="status-indicator" class="text-[9px] bg-gray-800 px-2 py-1 rounded text-gray-400 uppercase">جاهز</div>
-                </div>
-                
-                <div class="bg-black/40 rounded-2xl p-6 h-80 overflow-y-auto mb-6 text-sm flex flex-col gap-4 shadow-inner" id="chat-box">
-                    <div class="self-start bg-white/5 p-3 rounded-2xl text-gray-300 italic">بمسي عليك يا ريس! اؤمرني محتاج مساعدة في أي بيعة؟</div>
-                </div>
-
-                <div class="flex gap-3">
-                    <input type="text" id="user-input" class="flex-1 bg-gray-900/50 border border-gray-800 rounded-xl px-4 text-sm focus:outline-none focus:border-blue-500" placeholder="اسأل البرنس...">
-                    <button id="mic-btn" onclick="toggleSTT()" class="bg-gray-800 px-4 rounded-xl hover:bg-gray-700 transition-all">
-                        <i class="fas fa-microphone" id="mic-icon"></i>
-                    </button>
-                    <button onclick="handleFlow()" class="bg-blue-600 px-8 rounded-xl hover:bg-blue-700 transition-all font-bold">ارسل</button>
-                </div>
+        <div class="glass-card p-8 rounded-3xl">
+            <div class="bg-black/40 rounded-2xl p-6 h-80 overflow-y-auto mb-6 text-sm flex flex-col gap-4 shadow-inner" id="chat-box">
+                <div class="self-start bg-white/5 p-3 rounded-2xl text-gray-300 italic">بمسي عليك يا ريس! اؤمرني محتاج مساعدة في أي بيعة؟</div>
             </div>
+
+            <div class="flex gap-3">
+                <input type="text" id="user-input" class="flex-1 bg-gray-900/50 border border-gray-800 rounded-xl px-4 text-sm focus:outline-none" placeholder="اسأل البرنس...">
+                <button id="mic-btn" onclick="toggleSTT()" class="bg-gray-800 px-4 rounded-xl hover:bg-gray-700 transition-all">
+                    <i class="fas fa-microphone" id="mic-icon"></i>
+                </button>
+                <button onclick="handleFlow()" class="bg-blue-600 px-8 rounded-xl hover:bg-blue-700 transition-all font-bold">ارسل</button>
+            </div>
+            <div id="status-indicator" class="mt-4 text-[10px] text-gray-500 text-center uppercase">جاهز</div>
         </div>
     </div>
 
     <script>
+        // الرابط الجديد بعد الـ Deploy
         const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwSdiLI51qfXc-Tj0-u6aNzFbhydsHjWTB0qpb1eZVRBhZz3vvoeeNwvL7wAJdCQPpddA/exec";
-      
-        
-        let token = "";
-        let projectId = "";
-
-        // 1. AUTH: Fetch Token from Apps Script on Load
-        window.onload = async () => {
-            const resp = await fetch(APPS_SCRIPT_URL, {
-                method: "POST",
-                body: JSON.stringify({ action: "getAccessToken" })
-            });
-            const data = await resp.json();
-            token = data.token;
-            projectId = data.project_id;
-            document.getElementById('status-indicator').innerText = "متصل";
-        };
 
         async function handleFlow() {
-    const input = document.getElementById('user-input');
-    const chat = document.getElementById('chat-box');
-    const msg = input.value;
-    if(!msg) return;
+            const input = document.getElementById('user-input');
+            const chat = document.getElementById('chat-box');
+            const msg = input.value;
+            if(!msg) return;
 
-    chat.innerHTML += `<div class="self-end bg-blue-600/20 p-3 rounded-2xl text-blue-100">أنا: ${msg}</div>`;
-    input.value = "";
-    document.getElementById('status-indicator').innerText = "بيفكر ويرد...";
+            chat.innerHTML += `<div class="self-end bg-blue-600/20 p-3 rounded-2xl text-blue-100">أنا: ${msg}</div>`;
+            input.value = "";
+            document.getElementById('status-indicator').innerText = "بيفكر ويرد...";
 
-    try {
-        const response = await fetch(APPS_SCRIPT_URL, {
-            method: "POST",
-            body: JSON.stringify({ action: "processAI", message: msg })
-        });
+            try {
+                // استخدام mode: 'no-cors' أو التعامل مع الـ Redirect بتاع جوجل
+                const response = await fetch(APPS_SCRIPT_URL, {
+                    method: "POST",
+                    mode: 'no-cors', // مهم جداً لبعض حالات الـ Scripts
+                    headers: { "Content-Type": "text/plain" }, // جوجل بيفضل ده في الـ CORS
+                    body: JSON.stringify({ action: "processAI", message: msg })
+                });
 
-        const data = await response.json();
-        
-        if (data.reply) {
-            chat.innerHTML += `<div class="self-start bg-white/5 p-3 rounded-2xl text-gray-300">AIP: ${data.reply}</div>`;
-            chat.scrollTop = chat.scrollHeight;
+                // ملاحظة: مع Apps Script الـ fetch ممكن يرجع "opaque" لو استخدمنا no-cors
+                // الحل الأضمن هو استخدام التحويل لـ GET لو الـ POST فشل، أو التأكد من الـ Deploy
+                // هنستخدم الطريقة العادية ونعتمد على تصحيح السكريبت فوق
+                
+                const normalResponse = await fetch(APPS_SCRIPT_URL, {
+                    method: "POST",
+                    body: JSON.stringify({ action: "processAI", message: msg })
+                });
 
-            if (data.audio) {
-                const audio = new Audio("data:audio/wav;base64," + data.audio);
-                audio.play(); //
+                const data = await normalResponse.json();
+                
+                if (data.reply) {
+                    chat.innerHTML += `<div class="self-start bg-white/5 p-3 rounded-2xl text-gray-300">AIP: ${data.reply}</div>`;
+                    chat.scrollTop = chat.scrollHeight;
+
+                    if (data.audio) {
+                        const audio = new Audio("data:audio/wav;base64," + data.audio);
+                        audio.play();
+                    }
+                }
+                document.getElementById('status-indicator').innerText = "متصل";
+            } catch (err) {
+                console.error("CRASH:", err);
+                document.getElementById('status-indicator').innerText = "خطأ في الاتصال - تأكد من الـ Deploy";
             }
         }
-        document.getElementById('status-indicator').innerText = "متصل";
-    } catch (err) {
-        console.error("CRASH:", err);
-        document.getElementById('status-indicator').innerText = "خطأ في الاتصال";
-    }
-}
 
-        async function callGemini(message) {
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
-            const sysInstruction = "أنت خبير عقارات مصري شاطر. اتكلم مصري عامية فقط (يا وحش، يا ريس، خلصانة). ممنوع الفصحى.";
-            
-            const resp = await fetch(url, {
-                method: "POST",
-                body: JSON.stringify({
-                    system_instruction: { parts: [{ text: sysInstruction }] },
-                    contents: [{ parts: [{ text: message }] }]
-                })
-            });
-            const data = await resp.json();
-            return data.candidates[0].content.parts[0].text;
-        }
-
-        async function generateAndPlaySpeech(text) {
-            const url = `https://us-central1-aiplatform.googleapis.com/v1beta1/projects/${projectId}/locations/us-central1/publishers/google/models/gemini-2.5-flash-preview-tts:generateContent`;
-            
-            const resp = await fetch(url, {
-                method: "POST",
-                headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    contents: [{ role: "user", parts: [{ text: "اتكلم مصري: " + text }] }],
-                    generationConfig: { 
-                        responseModalities: ["AUDIO"],
-                        speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: "Fenrir" } } }
-                    }
-                })
-            });
-            const data = await resp.json();
-            const b64Audio = data.candidates[0].content.parts[1].inlineData.data;
-            
-            const audioObj = new Audio("data:audio/wav;base64," + b64Audio);
-            audioObj.play();
-        }
-
-        function addMessage(sender, text, classes) {
-            const chat = document.getElementById('chat-box');
-            chat.innerHTML += `<div class="${classes} p-3 rounded-2xl max-w-[80%]">${sender}: ${text}</div>`;
-            chat.scrollTop = chat.scrollHeight;
-        }
-
-        // 4. STT: Basic Web Speech API
         function toggleSTT() {
             const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
             recognition.lang = 'ar-EG';
