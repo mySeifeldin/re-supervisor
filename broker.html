@@ -1,191 +1,210 @@
-!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AIP Broker Pro | Dashboard</title>
+    <title>AIP | NEURAL BROKER</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        body { background-color: #020617; color: #f8fafc; font-family: 'Inter', sans-serif; overflow-x: hidden; }
-        .glass-card { background: rgba(30, 41, 59, 0.4); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.05); }
-        .active-client { border-left: 4px solid #3b82f6; background: rgba(59, 130, 246, 0.1); }
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 10px; }
+        body { background-color: #020617; color: #f8fafc; font-family: 'Inter', sans-serif; overflow: hidden; }
+        .glass { background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(15px); border: 1px solid rgba(59, 130, 246, 0.2); }
+        .neo-shadow { box-shadow: 0 0 20px rgba(59, 130, 246, 0.15); }
+        
+        /* Side Menu Animation */
+        .side-panel { transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); position: absolute; top: 80px; height: calc(100vh - 100px); z-index: 50; }
+        .panel-left { left: -320px; width: 320px; }
+        .panel-left.open { transform: translateX(330px); }
+        .panel-right { right: -320px; width: 320px; }
+        .panel-right.open { transform: translateX(-330px); }
+
+        /* Floating Chat UI */
+        #chat-container { transition: all 0.4s ease; width: 100%; max-width: 800px; margin: 0 auto; }
+        .chat-shrink { max-width: 500px !important; }
+
+        ::-webkit-scrollbar { width: 3px; }
+        ::-webkit-scrollbar-thumb { background: #3b82f6; border-radius: 10px; }
     </style>
 </head>
-<body class="p-4 bg-[radial-gradient(circle_at_bottom_left,_var(--tw-gradient-stops))] from-blue-900/10 via-slate-950 to-slate-950">
+<body class="p-4 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-slate-950 to-black">
 
-<div class="max-w-[1600px] mx-auto space-y-4">
-    
-    <header class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <div class="glass-card p-4 rounded-2xl flex justify-between items-center">
-            <div><p class="text-gray-500 text-[10px] uppercase font-bold">إجمالي المبيعات</p><h2 class="text-xl font-black">1.2M EGP</h2></div>
-            <i class="fas fa-chart-line text-blue-500"></i>
+    <header class="flex justify-between items-center h-16 mb-4 px-6 glass rounded-2xl neo-shadow">
+        <div class="flex items-center gap-4">
+            <button onclick="togglePanel('left')" class="text-blue-500 hover:text-white transition-colors"><i class="fas fa-users-cog text-xl"></i></button>
+            <h1 class="text-xl font-black tracking-tighter italic">NEURAL <span class="text-blue-500">AIP</span></h1>
         </div>
-        <div class="glass-card p-4 rounded-2xl flex justify-between items-center">
-            <div><p class="text-gray-500 text-[10px] uppercase font-bold">عملاء جدد</p><h2 class="text-xl font-black">14</h2></div>
-            <i class="fas fa-user-plus text-green-500"></i>
+        
+        <div class="hidden md:flex gap-8 text-[10px] font-bold uppercase tracking-widest text-gray-400">
+            <div>TARGET: <span class="text-blue-500">1.2M</span></div>
+            <div>STATUS: <span class="text-green-500 animate-pulse">OPTIMIZED</span></div>
         </div>
-        <div class="glass-card p-4 rounded-2xl flex justify-between items-center">
-            <div><p class="text-gray-500 text-[10px] uppercase font-bold">وحدات متاحة</p><h2 class="text-xl font-black">86</h2></div>
-            <i class="fas fa-building text-purple-500"></i>
-        </div>
-        <div class="glass-card p-4 rounded-2xl flex justify-center items-center gap-4">
-            <button class="relative p-2 bg-gray-800 rounded-full"><i class="fas fa-bell"></i><span class="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span></button>
-            <div class="text-right">
-                <p class="text-[10px] font-bold text-blue-400">WELCOME BACK</p>
-                <p class="text-xs font-black">SEIF ELDIN</p>
-            </div>
+
+        <div class="flex items-center gap-4">
+            <button class="relative text-blue-400"><i class="fas fa-bell"></i></button>
+            <button onclick="togglePanel('right')" class="text-purple-500"><i class="fas fa-project-diagram text-xl"></i></button>
         </div>
     </header>
 
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+    <main class="relative flex justify-center h-[calc(100vh-120px)] overflow-hidden">
         
-        <div class="lg:col-span-3 space-y-4">
-            <div class="glass-card p-4 rounded-3xl h-[700px] flex flex-col">
-                <div class="flex border-b border-white/5 mb-4">
-                    <button class="flex-1 pb-2 text-xs font-bold border-b-2 border-blue-500">العملاء</button>
-                    <button class="flex-1 pb-2 text-xs font-bold text-gray-500">المشاريع</button>
-                </div>
-                <div id="client-list" class="flex-1 overflow-y-auto space-y-2 pr-2">
+        <aside id="panel-left" class="side-panel panel-left glass rounded-3xl p-5 overflow-hidden flex flex-col">
+            <h3 class="text-sm font-bold text-blue-400 mb-4 flex items-center justify-between">
+                <span>العملاء النشطين</span>
+                <i class="fas fa-search text-[10px] text-gray-500"></i>
+            </h3>
+            <div id="client-list" class="space-y-3 overflow-y-auto flex-1">
+                <div class="p-3 bg-white/5 rounded-2xl animate-pulse h-12"></div>
+                <div class="p-3 bg-white/5 rounded-2xl animate-pulse h-12"></div>
+            </div>
+        </aside>
+
+        <section id="chat-container" class="h-full flex flex-col gap-4">
+            <div id="active-client-header" class="glass p-4 rounded-2xl flex justify-between items-center opacity-0 transition-opacity duration-500">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-600 to-purple-600 flex items-center justify-center font-bold" id="client-initial"></div>
+                    <div>
+                        <p id="selected-client-name" class="font-bold text-sm"></p>
+                        <p class="text-[9px] text-gray-500 uppercase">Analysing Deal Strategy...</p>
                     </div>
-            </div>
-        </div>
-
-        <div class="lg:col-span-6 space-y-4">
-            <div class="glass-card p-6 rounded-3xl h-[700px] flex flex-col">
-                <div id="active-client-header" class="mb-4 p-3 bg-white/5 rounded-2xl flex justify-between items-center hidden">
-                    <span id="selected-client-name" class="font-bold text-blue-400"></span>
-                    <div class="flex gap-2">
-                        <button onclick="takeNote()" class="p-2 text-xs bg-gray-800 rounded-lg"><i class="fas fa-sticky-note"></i></button>
-                        <button id="call-btn" class="p-2 text-xs bg-green-900/30 text-green-400 rounded-lg"><i class="fas fa-phone"></i></button>
-                        <button id="wa-btn" class="p-2 text-xs bg-green-600 rounded-lg"><i class="fab fa-whatsapp"></i></button>
-                    </div>
                 </div>
-
-                <div id="chat-box" class="flex-1 overflow-y-auto mb-4 space-y-4 p-2 text-sm">
-                    <div class="self-start bg-white/5 p-4 rounded-2xl text-gray-300 italic">اختر عميلاً من القائمة لبدء التحليل...</div>
-                </div>
-
-                <div class="flex gap-2">
-                    <input type="text" id="user-input" class="flex-1 bg-gray-900/50 border border-gray-800 rounded-xl px-4 text-xs focus:outline-none" placeholder="اسأل AIP...">
-                    <button onclick="handleFlow()" class="bg-blue-600 px-6 rounded-xl font-bold text-xs">ارسل</button>
+                <div class="flex gap-3">
+                    <button id="wa-btn" class="w-8 h-8 rounded-full bg-green-600/20 text-green-500 flex items-center justify-center hover:bg-green-600 hover:text-white transition-all"><i class="fab fa-whatsapp"></i></button>
+                    <button onclick="takeNote()" class="w-8 h-8 rounded-full bg-blue-600/20 text-blue-500 flex items-center justify-center hover:bg-blue-600 hover:text-white transition-all"><i class="fas fa-sticky-note"></i></button>
                 </div>
             </div>
-        </div>
 
-        <div class="lg:col-span-3">
-            <div class="glass-card p-5 rounded-3xl h-[700px] flex flex-col">
-                <h3 class="font-bold text-blue-400 mb-4 text-sm"><i class="fas fa-bolt"></i> استراتيجية البيع</h3>
-                <div id="side-schedule" class="flex-1 overflow-y-auto space-y-3 text-[11px] text-gray-400">
-                    </div>
+            <div id="chat-box" class="flex-1 glass rounded-3xl p-6 overflow-y-auto space-y-4 neo-shadow border-white/5">
+                <div class="text-center text-gray-600 text-[10px] uppercase tracking-widest mt-20">Awaiting Neural Link...</div>
             </div>
-        </div>
-    </div>
-</div>
 
-<script>
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzVG7ISAV7W-tqMJP2vrLUHwJHyoxbTR6uu3Qp-YvxtmkP_suLucao4ZDxfdS3k4WvPVA/exec";
-// 1. Fetch Clients on Load
-window.onload = async () => {
-    const response = await fetch(APPS_SCRIPT_URL + "?action=getClients");
-    const clients = await response.json();
-    const list = document.getElementById('client-list');
-    list.innerHTML = "";
-    clients.slice(1).forEach((client, index) => {
-        list.innerHTML += `
-            <div onclick="selectClient('${client[0]}', '${client[1]}', '${client[2]}')" class="p-3 bg-white/5 rounded-xl cursor-pointer hover:bg-white/10 transition-all">
-                <p class="font-bold text-xs">${client[0]}</p>
-                <p class="text-[9px] text-gray-500">${client[2]}</p>
+            <div class="glass p-3 rounded-2xl flex gap-3 neo-shadow">
+                <button onclick="toggleSTT()" class="w-12 h-12 rounded-xl bg-slate-800 flex items-center justify-center text-blue-500"><i class="fas fa-microphone" id="mic-icon"></i></button>
+                <input type="text" id="user-input" class="flex-1 bg-transparent border-none outline-none text-sm" placeholder="Ask AIP Strategy...">
+                <button onclick="handleFlow()" class="px-6 bg-blue-600 rounded-xl font-bold text-xs uppercase italic tracking-tighter">Process</button>
             </div>
-        `;
-    });
-};
+        </section>
 
-function selectClient(name, phone, request) {
-    document.getElementById('active-client-header').classList.remove('hidden');
-    document.getElementById('selected-client-name').innerText = name;
-    document.getElementById('wa-btn').onclick = () => window.open(`https://wa.me/${phone}`);
-    document.getElementById('call-btn').onclick = () => alert(`اتصال بـ: ${phone}`);
-    
-    // اطلب من الـ AI فوراً تحليل العميل ده
-    document.getElementById('user-input').value = `حلل لي حالة العميل ${name} اللي طالب ${request}`;
-    handleFlow();
-}
+        <aside id="panel-right" class="side-panel panel-right glass rounded-3xl p-5 overflow-hidden flex flex-col">
+            <h3 class="text-sm font-bold text-purple-400 mb-4 italic uppercase">Strategic Schedule</h3>
+            <div id="side-schedule" class="space-y-3 overflow-y-auto flex-1 text-[11px] text-gray-400">
+                <p class="italic">Choose a client to generate selling steps...</p>
+            </div>
+        </aside>
 
-function takeNote() {
-    const note = prompt("اكتب ملاحظة عن العميل للـ AI:");
-    if(note) {
-        // يمكن إرسالها للـ AI كرسالة مخفية لتحسين التحليل
-        document.getElementById('user-input').value = `ملاحظة جديدة: ${note}. بناءً على ده، إيه الخطوة الجاية؟`;
-        handleFlow();
-    }
-}
+    </main>
 
-// 🔊 الـ Audio Player (زي ما هو ممنوع اللمس)
-async function playPCM(base64PCM) {
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 24000 });
-    const binary = atob(base64PCM);
-    const buffer = new ArrayBuffer(binary.length);
-    const view = new Uint8Array(buffer);
-    for (let i = 0; i < binary.length; i++) { view[i] = binary.charCodeAt(i); }
-    const pcm16 = new Int16Array(buffer);
-    const audioBuffer = audioCtx.createBuffer(1, pcm16.length, 24000);
-    const channel = audioBuffer.getChannelData(0);
-    for (let i = 0; i < pcm16.length; i++) { channel[i] = pcm16[i] / 32768; }
-    const source = audioCtx.createBufferSource();
-    source.buffer = audioBuffer;
-    source.connect(audioCtx.destination);
-    source.start();
-}
+    <script>
+        const APPS_SCRIPT_URL = "YOUR_APPS_SCRIPT_URL_HERE";
 
-async function handleFlow() {
-    const input = document.getElementById('user-input');
-    const chat = document.getElementById('chat-box');
-    const msg = input.value;
-    if (!msg) return;
-
-    chat.innerHTML += `<div class="self-end bg-blue-600/20 p-3 rounded-2xl text-blue-100 max-w-[80%]">أنا: ${msg}</div>`;
-    input.value = "";
-    document.getElementById('status-indicator').innerText = "بيحلل الجداول...";
-    chat.scrollTop = chat.scrollHeight;
-
-    try {
-        const response = await fetch(APPS_SCRIPT_URL, {
-            method: "POST",
-            body: JSON.stringify({ action: "processAI", message: msg })
-        });
-
-        const data = await response.json();
-
-        if (data.reply) {
-            chat.innerHTML += `<div class="self-start bg-white/5 p-4 rounded-2xl text-gray-300 max-w-[80%]">AIP: ${data.reply}</div>`;
-            chat.scrollTop = chat.scrollHeight;
-            // تحديث الجدول الجانبي بناءً على الرد
-            updateSchedule(data.reply);
+        // 🛸 Dynamic UI Controls
+        function togglePanel(dir) {
+            const panel = document.getElementById(`panel-${dir}`);
+            const chat = document.getElementById('chat-container');
+            panel.classList.toggle('open');
+            
+            // Shrink chat if both open
+            if(document.querySelectorAll('.side-panel.open').length > 0) {
+                chat.classList.add('chat-shrink');
+            } else {
+                chat.classList.remove('chat-shrink');
+            }
         }
 
-        if (data.audio) { playPCM(data.audio); }
+        // 1. Initial Load: Get Clients
+        window.onload = async () => {
+            try {
+                const response = await fetch(APPS_SCRIPT_URL + "?action=getClients");
+                const clients = await response.json();
+                renderClients(clients.slice(1));
+            } catch(e) { console.error("Link Failed"); }
+        };
 
-        document.getElementById('status-indicator').innerText = "متصل";
-    } catch (err) {
-        console.error(err);
-        document.getElementById('status-indicator').innerText = "خطأ في الاتصال";
-    }
-}
+        function renderClients(clients) {
+            const list = document.getElementById('client-list');
+            list.innerHTML = clients.map(c => `
+                <div onclick="selectClient('${c[0]}', '${c[1]}', '${c[2]}')" class="p-3 bg-white/5 rounded-2xl cursor-pointer hover:bg-blue-600/20 transition-all border border-transparent hover:border-blue-500/30 group">
+                    <p class="font-bold text-xs group-hover:text-blue-400 transition-colors">${c[0]}</p>
+                    <p class="text-[9px] text-gray-500">${c[2].substring(0, 30)}...</p>
+                </div>
+            `).join('');
+        }
 
-function toggleSTT() {
-    const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-    recognition.lang = 'ar-EG';
-    recognition.onstart = () => document.getElementById('mic-icon').className = "fas fa-circle text-red-500 animate-pulse";
-    recognition.onresult = (event) => {
-        document.getElementById('user-input').value = event.results[0][0].transcript;
-        document.getElementById('mic-icon').className = "fas fa-microphone";
-        handleFlow();
-    };
-    recognition.start();
-}
-</script>
+        function selectClient(name, phone, request) {
+            const header = document.getElementById('active-client-header');
+            header.style.opacity = "1";
+            document.getElementById('selected-client-name').innerText = name;
+            document.getElementById('client-initial').innerText = name.charAt(0);
+            document.getElementById('wa-btn').onclick = () => window.open(`https://wa.me/${phone}`);
+            
+            // AIP Brain Kickstart
+            document.getElementById('user-input').value = `بروز لي حالة العميل ${name} اللي طالب ${request} واقترح أول خطوة`;
+            handleFlow();
+            if(window.innerWidth < 1024) togglePanel('left');
+        }
+
+        // 🔊 AUDIO ENGINE (NO MODIFICATIONS PERMITTED)
+        async function playPCM(base64PCM) {
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 24000 });
+            const binary = atob(base64PCM);
+            const buffer = new ArrayBuffer(binary.length);
+            const view = new Uint8Array(buffer);
+            for (let i = 0; i < binary.length; i++) { view[i] = binary.charCodeAt(i); }
+            const pcm16 = new Int16Array(buffer);
+            const audioBuffer = audioCtx.createBuffer(1, pcm16.length, 24000);
+            const channel = audioBuffer.getChannelData(0);
+            for (let i = 0; i < pcm16.length; i++) { channel[i] = pcm16[i] / 32768; }
+            const source = audioCtx.createBufferSource();
+            source.buffer = audioBuffer;
+            source.connect(audioCtx.destination);
+            source.start();
+        }
+
+        // 🧠 Core Flow
+        async function handleFlow() {
+            const input = document.getElementById('user-input');
+            const chatBox = document.getElementById('chat-box');
+            const msg = input.value;
+            if(!msg) return;
+
+            chatBox.innerHTML += `<div class="self-end bg-blue-600/20 p-4 rounded-2xl text-blue-100 max-w-[85%] mr-auto">أنا: ${msg}</div>`;
+            input.value = "";
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            try {
+                const response = await fetch(APPS_SCRIPT_URL, {
+                    method: "POST",
+                    body: JSON.stringify({ action: "processAI", message: msg })
+                });
+                const data = await response.json();
+
+                if (data.reply) {
+                    chatBox.innerHTML += `<div class="self-start bg-white/5 p-4 rounded-2xl text-gray-300 max-w-[85%] border-r-2 border-purple-500">AIP: ${data.reply}</div>`;
+                    chatBox.scrollTop = chatBox.scrollHeight;
+                    updateStrategy(data.reply);
+                }
+                if (data.audio) playPCM(data.audio);
+            } catch (err) { console.error("Link Terminal Interrupted"); }
+        }
+
+        function updateStrategy(text) {
+            const side = document.getElementById('side-schedule');
+            const steps = text.split('\n').filter(l => l.includes('-') || l.includes(':'));
+            if(steps.length > 0) {
+                side.innerHTML = steps.map(s => `<div class="p-3 bg-purple-500/5 rounded-xl border-r-2 border-purple-500 mb-2">${s}</div>`).join('');
+            }
+        }
+
+        function toggleSTT() {
+            const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+            recognition.lang = 'ar-EG';
+            recognition.onstart = () => document.getElementById('mic-icon').className = "fas fa-circle text-red-500 animate-pulse";
+            recognition.onresult = (event) => {
+                document.getElementById('user-input').value = event.results[0][0].transcript;
+                document.getElementById('mic-icon').className = "fas fa-microphone";
+                handleFlow();
+            };
+            recognition.start();
+        }
+    </script>
 </body>
 </html>
