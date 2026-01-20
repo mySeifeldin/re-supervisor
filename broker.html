@@ -67,10 +67,17 @@
 
             try {
                 console.log("1. Fetching Brain Response...");
-                const brainResponse = await fetch(APPS_SCRIPT_URL, {
-                    method: "POST",
-                    body: JSON.stringify({ action: "askAIP", message: msg })
-                });
+             const brainResponse = await fetch(APPS_SCRIPT_URL, {
+    method: "POST",
+    headers: {
+        "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+        action: "askAIP",
+        message: msg
+    })
+});
+
                 const brainData = await brainResponse.json();
                 console.log("2. Brain Replied:", brainData.reply);
 
@@ -78,9 +85,15 @@
 
                 console.log("3. Fetching Audio...");
                 const voiceResponse = await fetch(APPS_SCRIPT_URL, {
-                    method: "POST",
-                    body: JSON.stringify({ action: "getVoice", text: brainData.reply })
-                });
+    method: "POST",
+    headers: {
+        "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+        action: "getVoice",
+        text: aiReply
+    })
+});
                 const voiceData = await voiceResponse.json();
 
                 if (voiceData.audio) {
