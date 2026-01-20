@@ -103,13 +103,26 @@
             }
         }
 
-        window.onload = async () => {
-            try {
-                const response = await fetch(APPS_SCRIPT_URL + "?action=getClients");
-                const clients = await response.json();
-                renderClients(clients.slice(1));
-            } catch(e) { console.error("Link Failed"); }
-        };
+       window.onload = async () => {
+    try {
+        console.log("📡 Attempting to fetch clients...");
+        // استخدام redirect: 'follow' مهم جداً مع Apps Script
+        const response = await fetch(APPS_SCRIPT_URL + "?action=getClients", {
+            method: 'GET',
+            redirect: 'follow'
+        });
+
+        if (!response.ok) throw new Error("Network response was not ok");
+        
+        const clients = await response.json();
+        console.log("✅ Clients loaded:", clients);
+        renderClients(clients.slice(1));
+    } catch(e) { 
+        console.error("❌ Link Failed:", e);
+        // عرض رسالة خطأ في القائمة للبروكر
+        document.getElementById('client-list').innerHTML = `<p class="text-[10px] text-red-500 text-center p-4">فشل الاتصال: تأكد من عمل New Deployment</p>`;
+    }
+};
 
         function renderClients(clients) {
             const list = document.getElementById('client-list');
