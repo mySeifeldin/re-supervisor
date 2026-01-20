@@ -50,8 +50,8 @@
     </div>
 
     <script>
-        const APPS_SCRIPT_URL = "YOUR_APPS_SCRIPT_URL_HERE";
-        const GEMINI_API_KEY = "AIzaSyDEbTbjAfEY8xUQi371eOrtq8QyQOf70dI";
+        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwSdiLI51qfXc-Tj0-u6aNzFbhydsHjWTB0qpb1eZVRBhZz3vvoeeNwvL7wAJdCQPpddA/exec";
+      
         
         let token = "";
         let projectId = "";
@@ -69,28 +69,38 @@
         };
 
         async function handleFlow() {
-            const input = document.getElementById('user-input');
-            const text = input.value;
-            if (!text) return;
+    const input = document.getElementById('user-input');
+    const chat = document.getElementById('chat-box');
+    const msg = input.value;
+    if(!msg) return;
 
-            addMessage("أنا", text, "self-end bg-blue-600/20 text-blue-100");
-            input.value = "";
-            document.getElementById('status-indicator').innerText = "بيفكر...";
+    chat.innerHTML += `<div class="self-end bg-blue-600/20 p-3 rounded-2xl text-blue-100">أنا: ${msg}</div>`;
+    input.value = "";
+    document.getElementById('status-indicator').innerText = "بيفكر ويرد...";
 
-            try {
-                // 2. BRAIN: Call Gemini Directly
-                const aiReply = await callGemini(text);
-                addMessage("AIP", aiReply, "self-start bg-white/5 text-gray-300");
+    try {
+        const response = await fetch(APPS_SCRIPT_URL, {
+            method: "POST",
+            body: JSON.stringify({ action: "processAI", message: msg })
+        });
 
-                // 3. TTS: Call Vertex AI Directly
-                document.getElementById('status-indicator').innerText = "بيتكلم...";
-                await generateAndPlaySpeech(aiReply);
-                document.getElementById('status-indicator').innerText = "متصل";
-            } catch (e) {
-                console.error(e);
-                document.getElementById('status-indicator').innerText = "خطأ";
+        const data = await response.json();
+        
+        if (data.reply) {
+            chat.innerHTML += `<div class="self-start bg-white/5 p-3 rounded-2xl text-gray-300">AIP: ${data.reply}</div>`;
+            chat.scrollTop = chat.scrollHeight;
+
+            if (data.audio) {
+                const audio = new Audio("data:audio/wav;base64," + data.audio);
+                audio.play(); //
             }
         }
+        document.getElementById('status-indicator').innerText = "متصل";
+    } catch (err) {
+        console.error("CRASH:", err);
+        document.getElementById('status-indicator').innerText = "خطأ في الاتصال";
+    }
+}
 
         async function callGemini(message) {
             const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
