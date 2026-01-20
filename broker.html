@@ -33,30 +33,7 @@
         </header>
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div class="lg:col-span-1">
-                <h3 class="text-lg font-bold mb-6 flex items-center gap-2"><i class="fas fa-bolt text-yellow-400"></i> AI Success Plan</h3>
-                <div class="relative border-l border-gray-800 ml-3 space-y-8 pl-8" id="ai-schedule">
-                    <p class="text-gray-500 italic text-sm">Analyzing market matches...</p>
-                </div>
-            </div>
-
             <div class="lg:col-span-2 space-y-8">
-                <div class="glass-card p-6 rounded-3xl ai-glow">
-                    <h3 class="font-bold mb-4 text-blue-400 uppercase text-[10px] tracking-widest">My Top Priority Leads</h3>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left text-sm">
-                            <thead>
-                                <tr class="text-gray-500 border-b border-gray-800 text-[10px] uppercase">
-                                    <th class="pb-3">Client</th>
-                                    <th class="pb-3">Budget</th>
-                                    <th class="pb-3">Status</th>
-                                </tr>
-                            </thead>
-                            <tbody id="broker-clients" class="divide-y divide-gray-800/50"></tbody>
-                        </table>
-                    </div>
-                </div>
-
                 <div class="glass-card p-8 rounded-3xl border-t border-white/5">
                     <div class="flex justify-between items-center mb-6">
                         <h3 class="font-bold flex items-center gap-2 text-purple-400"><i class="fas fa-comment-dots"></i> AI Sales Coach</h3>
@@ -66,11 +43,8 @@
                         <div class="text-gray-500 italic text-center">بمسي عليك يا ريس! اؤمرني محتاج مساعدة في أي بيعة؟</div>
                     </div>
                     <div class="flex gap-3">
-                        <button onclick="startListening()" id="mic-btn" class="bg-blue-600/10 text-blue-400 w-12 h-12 rounded-xl border border-blue-500/30 hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center">
-                            <i class="fas fa-microphone"></i>
-                        </button>
                         <input type="text" id="coach-input" class="flex-1 bg-gray-900/50 border border-gray-800 rounded-xl px-4 text-sm focus:outline-none focus:border-blue-500" placeholder="اسأل البرنس...">
-                        <button onclick="askCoach()" class="bg-blue-600 px-6 rounded-xl hover:bg-blue-700 transition-all font-bold"><i class="fas fa-paper-plane"></i></button>
+                        <button onclick="askCoach()" class="bg-blue-600 px-6 rounded-xl hover:bg-blue-700 transition-all font-bold">ارسل</button>
                     </div>
                 </div>
             </div>
@@ -78,90 +52,57 @@
     </div>
 
     <script>
-        // UPDATE THIS URL AFTER YOUR NEW APPS SCRIPT DEPLOYMENT
-        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzv0d8v8ij52jc1NdoZsppaQG4bey_HGbwRRQbKu4i2-PRiGbP5GehePnzO4Kw3o5ht/exec";
-        const CURRENT_BROKER_ID = "BRK-01"; 
-        let masterData = {};
-
-        window.handleBrokerData = function(data) {
-            masterData = data;
-            if(!data.brokersList) return;
-            const broker = data.brokersList.find(b => b[0] === CURRENT_BROKER_ID);
-            if(broker) {
-                document.getElementById('broker-name').innerText = broker[1];
-                document.getElementById('broker-area').innerText = broker[3];
-            }
-            const clients = data.clientsList ? data.clientsList.filter(c => c[5] === CURRENT_BROKER_ID) : [];
-            renderBrokerClients(clients);
-            renderAISchedule(clients);
-        };
-
-        function renderBrokerClients(clients) {
-            document.getElementById('broker-clients').innerHTML = clients.map(c => `
-                <tr class="hover:bg-white/5 transition">
-                    <td class="py-4 font-bold text-gray-200">${c[1]}</td>
-                    <td class="py-4 text-green-400 font-mono">${c[4]}</td>
-                    <td class="py-4"><span class="text-[10px] bg-blue-900/30 px-2 py-1 rounded text-blue-400">${c[6]}</span></td>
-                </tr>
-            `).join('');
-        }
-
-        function renderAISchedule(clients) {
-            document.getElementById('ai-schedule').innerHTML = clients.slice(0, 3).map((c, i) => `
-                <div class="relative">
-                    <div class="timeline-dot"></div>
-                    <p class="text-[10px] text-blue-400 font-bold uppercase tracking-wider">Step ${i+1}</p>
-                    <p class="text-sm font-bold text-white">Contact ${c[1]}</p>
-                    <p class="text-xs text-gray-500">Suggested: ${c[3]}</p>
-                </div>
-            `).join('');
-        }
+        // حط الرابط الجديد هنا
+        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxLpULpbH-ljJn_w81ME9MCdo0BDvXW-deyqvfiVofVvRQxQgPKxQdHjnLyxjhGywwfMg/exec";
 
         async function askCoach() {
+            console.log("--- STARTING FLOW ---");
             const input = document.getElementById('coach-input');
             const chat = document.getElementById('ai-coach-chat');
             const msg = input.value;
             if(!msg) return;
 
-            chat.innerHTML += `<div class="self-end bg-blue-600/20 p-3 rounded-2xl max-w-[80%] ml-auto text-blue-100"><b>أنا:</b> ${msg}</div>`;
+            chat.innerHTML += `<div class="self-end bg-blue-600/20 p-3 rounded-2xl text-blue-100">أنا: ${msg}</div>`;
             input.value = "";
-            chat.scrollTop = chat.scrollHeight;
 
             try {
+                console.log("1. Fetching Brain Response...");
                 const brainResponse = await fetch(APPS_SCRIPT_URL, {
                     method: "POST",
                     body: JSON.stringify({ action: "askAIP", message: msg })
                 });
                 const brainData = await brainResponse.json();
-                const aiReply = brainData.reply;
+                console.log("2. Brain Replied:", brainData.reply);
 
-                chat.innerHTML += `<div class="self-start bg-white/5 p-3 rounded-2xl max-w-[80%] text-gray-300"><b>AIP:</b> ${aiReply}</div>`;
-                chat.scrollTop = chat.scrollHeight;
+                chat.innerHTML += `<div class="self-start bg-white/5 p-3 rounded-2xl text-gray-300">AIP: ${brainData.reply}</div>`;
 
+                console.log("3. Fetching Audio...");
                 const voiceResponse = await fetch(APPS_SCRIPT_URL, {
                     method: "POST",
-                    body: JSON.stringify({ action: "getVoice", text: aiReply })
+                    body: JSON.stringify({ action: "getVoice", text: brainData.reply })
                 });
                 const voiceData = await voiceResponse.json();
-                
+
                 if (voiceData.audio) {
+                    console.log("4. SUCCESS: Audio Data Received. Length:", voiceData.audio.length);
+                    
                     const binaryString = window.atob(voiceData.audio);
                     const len = binaryString.length;
                     const bytes = new Uint8Array(len);
-                    for (let i = 0; i < len; i++) {
-                        bytes[i] = binaryString.charCodeAt(i);
-                    }
+                    for (let i = 0; i < len; i++) { bytes[i] = binaryString.charCodeAt(i); }
 
-                    // ADDING WAV HEADER FOR PCM DATA (24kHz)
                     const wavHeader = createWavHeader(len, 24000); 
                     const wavBlob = new Blob([wavHeader, bytes], { type: 'audio/wav' });
                     const audioUrl = URL.createObjectURL(wavBlob);
                     
+                    console.log("5. Playing Audio...");
                     const audio = new Audio(audioUrl);
-                    audio.play().catch(e => console.error("Playback Error", e));
+                    audio.play().catch(e => console.error("Playback error:", e));
+                } else {
+                    console.error("4. ERROR: Audio data is empty in JSON");
                 }
             } catch (err) {
-                console.error("AIP Error:", err);
+                console.error("FLOW CRASHED:", err);
             }
         }
 
@@ -186,26 +127,6 @@
             view.setUint32(40, dataLength, true);
             return buffer;
         }
-
-        function startListening() {
-            const btn = document.getElementById('mic-btn');
-            const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-            recognition.lang = 'ar-EG';
-            recognition.start();
-            btn.classList.add('animate-pulse', 'bg-red-600/20', 'text-red-400');
-            recognition.onresult = (event) => {
-                document.getElementById('coach-input').value = event.results[0][0].transcript;
-                btn.classList.remove('animate-pulse', 'bg-red-600/20', 'text-red-400');
-                askCoach();
-            };
-        }
-
-        function init() {
-            const script = document.createElement('script');
-            script.src = `${APPS_SCRIPT_URL}?callback=handleBrokerData`;
-            document.head.appendChild(script);
-        }
-        window.onload = init;
     </script>
 </body>
 </html>
