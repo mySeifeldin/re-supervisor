@@ -107,26 +107,52 @@
             return data.candidates[0].content.parts[0].text;
         }
 
-        async function generateAndPlaySpeech(text) {
-            const url = `https://us-central1-aiplatform.googleapis.com/v1beta1/projects/${projectId}/locations/us-central1/publishers/google/models/gemini-2.5-flash-preview-tts:generateContent`;
-            
-            const resp = await fetch(url, {
-                method: "POST",
-                headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    contents: [{ role: "user", parts: [{ text: "اتكلم مصري: " + text }] }],
-                    generationConfig: { 
-                        responseModalities: ["AUDIO"],
-                        speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: "Fenrir" } } }
+       async function generateAndPlaySpeech(text) {
+    const url = `https://us-central1-aiplatform.googleapis.com/v1beta1/projects/${projectId}/locations/us-central1/publishers/google/models/gemini-2.5-flash-preview-tts:generateContent`;
+    
+    try {
+        const resp = await fetch(url, {
+            method: "POST",
+            headers: { 
+                "Authorization": `Bearer ${token}`, 
+                "Content-Type": "application/json" 
+            },
+            body: JSON.stringify({
+                contents: [{ role: "user", parts: [{ text: "اتكلم مصري: " + text }] }],
+                generationConfig: { 
+                    responseModalities: ["AUDIO"],
+                    speechConfig: { 
+                        voiceConfig: { 
+                            prebuiltVoiceConfig: { voiceName: "Fenrir" } 
+                        } 
                     }
-                })
-            });
-            const data = await resp.json();
+                }
+            })
+        });
+
+        const data = await resp.json();
+
+        // التأكد من وجود البيانات
+        if (data.candidates && data.candidates[0].content.parts[1].inlineData) {
             const b64Audio = data.candidates[0].content.parts[1].inlineData.data;
             
+            // --- هنا بنطبع الداتا في الكونسول عشان تشوفها ---
+            console.log("✅ Audio Data Received (Base64 String):");
+            console.log(b64Audio); // دي البيانات اللي بتسأل عليها
+            console.log("📏 Data Length:", b64Audio.length);
+            // ----------------------------------------------
+
             const audioObj = new Audio("data:audio/wav;base64," + b64Audio);
-            audioObj.play();
+            
+            console.log("🔊 Playing Audio...");
+            await audioObj.play();
+        } else {
+            console.error("❌ No audio data found in response:", data);
         }
+    } catch (error) {
+        console.error("❌ TTS Request Failed:", error);
+    }
+}
 
         function addMessage(sender, text, classes) {
             const chat = document.getElementById('chat-box');
