@@ -119,86 +119,97 @@
     </main>
 
     <script>
-        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbztNYbL5qKJjyk9zwqIzXRIK7-J1YyGFXeeIw0b17rOYiPYuHCVTYgaySWtmvveIV4HaQ/exec";
-        let masterData = {};
-        let charts = {};
+    // 🔗 تأكد إن ده الرابط الجديد اللي طالع من الـ New Deployment
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbze801vGgEPNFFmiFs2Cc7LMwSwpy8791wztuVytL0LGnQHQdN7RWORYQ7Z6mJ59H3ytw/exec";
+    let masterData = {};
+    let charts = {};
 
-        function showTab(tabName, event) {
-            document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
-            document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
-            document.getElementById('tab-' + tabName).classList.remove('hidden');
-            if(event) event.currentTarget.classList.add('active');
-            
-            if(tabName !== 'dashboard') renderFullTable(tabName);
-        }
+    function showTab(tabName, event) {
+        document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
+        document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+        document.getElementById('tab-' + tabName).classList.remove('hidden');
+        if(event) event.currentTarget.classList.add('active');
+        if(tabName !== 'dashboard') renderFullTable(tabName);
+    }
 
-        window.handleData = function(data) {
-            masterData = data;
-            document.getElementById('count-projects').innerText = data.projectsCount;
-            document.getElementById('count-units').innerText = data.availableUnits;
-            document.getElementById('count-deals').innerText = data.openDeals;
-            updateCharts();
-        };
+    window.handleData = function(data) {
+        masterData = data;
+        document.getElementById('count-projects').innerText = data.projectsCount || 0;
+        document.getElementById('count-units').innerText = data.availableUnits || 0;
+        document.getElementById('count-deals').innerText = data.openDeals || 0;
+        updateCharts();
+    };
 
-        function renderFullTable(type) {
-            const data = masterData[type + 'List'];
-            const head = document.getElementById('head-' + type);
-            const body = document.getElementById('rows-' + type);
-            if(!data || data.length === 0) return;
+    function renderFullTable(type) {
+        const data = masterData[type + 'List'];
+        const head = document.getElementById('head-' + type);
+        const body = document.getElementById('rows-' + type);
+        if(!data || data.length === 0) return;
 
-            head.innerHTML = `<tr>${data[0].map(h => `<th class="p-4 font-bold text-blue-400 border-b border-gray-800">${h}</th>`).join('')}</tr>`;
-            body.innerHTML = data.slice(1).map(row => `<tr class="border-b border-white/5 hover:bg-white/5 text-xs">${row.map(cell => `<td class="p-4 text-gray-400">${cell}</td>`).join('')}</tr>`).join('');
-        }
+        head.innerHTML = `<tr>${data[0].map(h => `<th class="p-4 font-bold text-blue-400 border-b border-gray-800">${h}</th>`).join('')}</tr>`;
+        body.innerHTML = data.slice(1).map(row => `<tr class="border-b border-white/5 hover:bg-white/5 text-xs">${row.map(cell => `<td class="p-4 text-gray-400">${cell}</td>`).join('')}</tr>`).join('');
+    }
 
-        function updateCharts() {
-            const ctxInv = document.getElementById('inventoryChart').getContext('2d');
-            if(charts.inv) charts.inv.destroy();
-            
-            charts.inv = new Chart(ctxInv, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Available', 'Sold', 'Reserved'],
-                    datasets: [{
-                        data: [masterData.availableUnits, (masterData.unitsList.length - masterData.availableUnits - 1), 0],
-                        backgroundColor: ['#3b82f6', '#1e293b', '#60a5fa'],
-                        borderWidth: 0
-                    }]
-                },
-                options: { 
-                    maintainAspectRatio: false, 
-                    plugins: { 
-                        legend: { position: 'bottom', labels: { color: '#94a3b8', font: { size: 10 } } } 
-                    } 
-                }
+    function updateCharts() {
+        const ctxInv = document.getElementById('inventoryChart').getContext('2d');
+        if(charts.inv) charts.inv.destroy();
+        charts.inv = new Chart(ctxInv, {
+            type: 'doughnut',
+            data: {
+                labels: ['Available', 'Sold', 'Reserved'],
+                datasets: [{
+                    data: [masterData.availableUnits || 0, (masterData.unitsList ? masterData.unitsList.length : 0), 0],
+                    backgroundColor: ['#3b82f6', '#1e293b', '#60a5fa'],
+                    borderWidth: 0
+                }]
+            },
+            options: { maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8', font: { size: 10 } } } } }
+        });
+    }
+
+    // 🚀 الدالة المعدلة للرفع الاحترافي
+    function handleFileUpload(event, sheetName) {
+        const file = event.target.files[0];
+        const reader = new FileReader();
+        
+        reader.onload = async function(e) {
+            const text = e.target.result;
+            // تقسيم الأسطر مع مراعاة الفواصل داخل علامات التنصيص (Regex)
+            const rows = text.split(/\r?\n/).map(row => {
+                return row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(cell => cell.replace(/^"|"$/g, ''));
             });
-        }
 
-        function handleFileUpload(event, sheetName) {
-            const file = event.target.files[0];
-            const reader = new FileReader();
-            reader.onload = async function(e) {
-                const rows = e.target.result.split("\n").map(r => r.split(","));
-                // Remove header if present in CSV
-                const cleanData = rows[0][0].toLowerCase().includes('id') ? rows.slice(1) : rows;
-                
-                await fetch(APPS_SCRIPT_URL, { 
+            // تنظيف الصفوف الفاضية
+            const cleanData = rows.filter(r => r.length > 1);
+
+            console.log("📤 Uploading " + cleanData.length + " rows to " + sheetName);
+
+            try {
+                // إرسال البيانات للـ Apps Script الجديد
+                const response = await fetch(APPS_SCRIPT_URL, { 
                     method: "POST", 
-                    mode: "no-cors", 
+                    mode: "no-cors", // مهم جداً للـ Apps Script
                     body: JSON.stringify({sheet: sheetName, data: cleanData}) 
                 });
-                alert("AIP System: CSV Upload Queued for " + sheetName);
-            };
-            reader.readAsText(file);
-        }
+                
+                alert("AIP System: CSV Uploaded for " + sheetName + ". Please refresh in 5 seconds.");
+            } catch (err) {
+                alert("Upload Failed. Check Console.");
+                console.error(err);
+            }
+        };
+        reader.readAsText(file);
+    }
 
-        function init() {
-            const script = document.createElement('script');
-            script.src = `${APPS_SCRIPT_URL}?callback=handleData`;
-            document.head.appendChild(script);
-        }
-        window.onload = init;
-    </script>
+    function init() {
+        const script = document.createElement('script');
+        script.src = `${APPS_SCRIPT_URL}?callback=handleData`;
+        document.head.appendChild(script);
+    }
+    window.onload = init;
+</script>
 </body>
 </html>
+
 
 
