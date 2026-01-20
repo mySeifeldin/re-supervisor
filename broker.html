@@ -80,10 +80,99 @@
     <script>
         const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwutMTfhvmakOe6XMoiJIgUpuhrmckx-zgeo0zuNSHJ6N-0Kt6AvW-caH6SK0Ssz8IEkw/exec";
         const CURRENT_BROKER_ID = "BRK-01"; 
-        let masterData = {};
+        
+        // نظام التتبع
+        function logDebug(msg, data = "") {
+            console.log(`[DEBUG] ${new Date().toLocaleTimeString()}: ${msg}`, data);
+        }
 
+        async function askCoach() {
+            const input = document.getElementById('coach-input');
+            const chat = document.getElementById('ai-coach-chat');
+            const msg = input.value;
+            if(!msg) return;
+
+            chat.innerHTML += `<div class="self-end bg-blue-600/20 p-3 rounded-2xl max-w-[80%] ml-auto text-blue-100"><b>أنا:</b> ${msg}</div>`;
+            input.value = "";
+            chat.scrollTop = chat.scrollHeight;
+
+            try {
+                logDebug("Sending text to Brain...");
+                const brainResponse = await fetch(APPS_SCRIPT_URL, {
+                    method: "POST",
+                    body: JSON.stringify({ action: "askAIP", message: msg })
+                });
+                const brainData = await brainResponse.json();
+                logDebug("Brain Replied:", brainData.reply);
+
+                const aiReply = brainData.reply;
+                chat.innerHTML += `<div class="self-start bg-white/5 p-3 rounded-2xl max-w-[80%] text-gray-300"><b>AIP:</b> ${aiReply}</div>`;
+                chat.scrollTop = chat.scrollHeight;
+
+                logDebug("Requesting Voice for reply...");
+                const voiceResponse = await fetch(APPS_SCRIPT_URL, {
+                    method: "POST",
+                    body: JSON.stringify({ action: "getVoice", text: aiReply })
+                });
+                const voiceData = await voiceResponse.json();
+                
+                if (voiceData.audio) {
+                    logDebug("AUDIO RECEIVED! Base64 Length:", voiceData.audio.length);
+                    
+                    const binaryString = window.atob(voiceData.audio);
+                    const len = binaryString.length;
+                    const bytes = new Uint8Array(len);
+                    for (let i = 0; i < len; i++) {
+                        bytes[i] = binaryString.charCodeAt(i);
+                    }
+
+                    logDebug("Decoding PCM and attaching WAV Header (24kHz)...");
+                    const wavHeader = createWavHeader(len, 24000); 
+                    const wavBlob = new Blob([wavHeader, bytes], { type: 'audio/wav' });
+                    const audioUrl = URL.createObjectURL(wavBlob);
+                    
+                    logDebug("Triggering Audio Playback...");
+                    const audio = new Audio(audioUrl);
+                    audio.play().then(() => logDebug("PLAYING SUCCESSFUL!"))
+                    .catch(e => {
+                        logDebug("PLAYBACK BLOCKED:", e.message);
+                        alert("يا ريس اضغط في أي حتة في الصفحة عشان تسمعني!");
+                    });
+                } else {
+                    logDebug("CRITICAL: Voice data was empty!");
+                }
+            } catch (err) {
+                logDebug("ERROR IN FLOW:", err.toString());
+                chat.innerHTML += `<div class="text-red-400 text-[10px] italic">Error: ${err.message}</div>`;
+            }
+        }
+
+        function createWavHeader(dataLength, sampleRate) {
+            const buffer = new ArrayBuffer(44);
+            const view = new DataView(buffer);
+            const writeString = (offset, string) => {
+                for (let i = 0; i < string.length; i++) {
+                    view.setUint8(offset + i, string.charCodeAt(i));
+                }
+            };
+            writeString(0, 'RIFF');
+            view.setUint32(4, 36 + dataLength, true);
+            writeString(8, 'WAVE');
+            writeString(12, 'fmt ');
+            view.setUint32(16, 16, true);
+            view.setUint16(20, 1, true); 
+            view.setUint16(22, 1, true); 
+            view.setUint32(24, sampleRate, true);
+            view.setUint32(28, sampleRate * 2, true);
+            view.setUint16(32, 2, true);
+            view.setUint16(34, 16, true);
+            writeString(36, 'data');
+            view.setUint32(40, dataLength, true);
+            return buffer;
+        }
+
+        // باقي الدوال الأصلية (startListening, init, window.handleBrokerData) تفضل زي ما هي
         window.handleBrokerData = function(data) {
-            masterData = data;
             if(!data.brokersList) return;
             const broker = data.brokersList.find(b => b[0] === CURRENT_BROKER_ID);
             if(broker) {
@@ -114,84 +203,6 @@
                     <p class="text-xs text-gray-500">Suggested: ${c[3]}</p>
                 </div>
             `).join('');
-        }
-
-        async function askCoach() {
-            const input = document.getElementById('coach-input');
-            const chat = document.getElementById('ai-coach-chat');
-            const msg = input.value;
-            if(!msg) return;
-
-            chat.innerHTML += `<div class="self-end bg-blue-600/20 p-3 rounded-2xl max-w-[80%] ml-auto text-blue-100"><b>أنا:</b> ${msg}</div>`;
-            input.value = "";
-            chat.scrollTop = chat.scrollHeight;
-
-            try {
-                const brainResponse = await fetch(APPS_SCRIPT_URL, {
-                    method: "POST",
-                    body: JSON.stringify({ action: "askAIP", message: msg })
-                });
-                const brainData = await brainResponse.json();
-                
-                if (brainData.error) throw new Error(brainData.error);
-                const aiReply = brainData.reply;
-
-                chat.innerHTML += `<div class="self-start bg-white/5 p-3 rounded-2xl max-w-[80%] text-gray-300"><b>AIP:</b> ${aiReply}</div>`;
-                chat.scrollTop = chat.scrollHeight;
-
-                const voiceResponse = await fetch(APPS_SCRIPT_URL, {
-                    method: "POST",
-                    body: JSON.stringify({ action: "getVoice", text: aiReply })
-                });
-                const voiceData = await voiceResponse.json();
-                
-                if (voiceData.audio) {
-                    console.log("Audio Base64 Received, decoding...");
-                    const binaryString = window.atob(voiceData.audio);
-                    const len = binaryString.length;
-                    const bytes = new Uint8Array(len);
-                    for (let i = 0; i < len; i++) {
-                        bytes[i] = binaryString.charCodeAt(i);
-                    }
-
-                    // صوت Fenrir بيستخدم PCM بتردد 24000
-                    const wavHeader = createWavHeader(len, 24000); 
-                    const wavBlob = new Blob([wavHeader, bytes], { type: 'audio/wav' });
-                    const audioUrl = URL.createObjectURL(wavBlob);
-                    
-                    const audio = new Audio(audioUrl);
-                    audio.play().catch(e => {
-                        console.warn("Autoplay block detected. Click to play.");
-                    });
-                }
-            } catch (err) {
-                console.error("AIP Error:", err);
-                chat.innerHTML += `<div class="text-red-400 text-[10px] italic">Error: ${err.message}</div>`;
-            }
-        }
-
-        function createWavHeader(dataLength, sampleRate) {
-            const buffer = new ArrayBuffer(44);
-            const view = new DataView(buffer);
-            const writeString = (offset, string) => {
-                for (let i = 0; i < string.length; i++) {
-                    view.setUint8(offset + i, string.charCodeAt(i));
-                }
-            };
-            writeString(0, 'RIFF');
-            view.setUint32(4, 36 + dataLength, true);
-            writeString(8, 'WAVE');
-            writeString(12, 'fmt ');
-            view.setUint32(16, 16, true);
-            view.setUint16(20, 1, true); // PCM
-            view.setUint16(22, 1, true); // Mono
-            view.setUint32(24, sampleRate, true);
-            view.setUint32(28, sampleRate * 2, true);
-            view.setUint16(32, 2, true);
-            view.setUint16(34, 16, true);
-            writeString(36, 'data');
-            view.setUint32(40, dataLength, true);
-            return buffer;
         }
 
         function startListening() {
