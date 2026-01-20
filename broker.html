@@ -78,95 +78,13 @@
     </div>
 
     <script>
-        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxLpULpbH-ljJn_w81ME9MCdo0BDvXW-deyqvfiVofVvRQxQgPKxQdHjnLyxjhGywwfMg/exec";
+        // UPDATE THIS URL AFTER YOUR NEW APPS SCRIPT DEPLOYMENT
+        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzv0d8v8ij52jc1NdoZsppaQG4bey_HGbwRRQbKu4i2-PRiGbP5GehePnzO4Kw3o5ht/exec";
         const CURRENT_BROKER_ID = "BRK-01"; 
-        
-        // نظام التتبع
-        function logDebug(msg, data = "") {
-            console.log(`[DEBUG] ${new Date().toLocaleTimeString()}: ${msg}`, data);
-        }
+        let masterData = {};
 
-       async function askCoach() {
-    const input = document.getElementById('coach-input');
-    const chat = document.getElementById('ai-coach-chat');
-    const msg = input.value;
-    if(!msg) return;
-
-    chat.innerHTML += `<div class="self-end bg-blue-600/20 p-3 rounded-2xl max-w-[80%] ml-auto text-blue-100"><b>أنا:</b> ${msg}</div>`;
-    input.value = "";
-    chat.scrollTop = chat.scrollHeight;
-
-    try {
-        const brainResponse = await fetch(APPS_SCRIPT_URL, {
-            method: "POST",
-            body: JSON.stringify({ action: "askAIP", message: msg })
-        });
-        const brainData = await brainResponse.json();
-        const aiReply = brainData.reply;
-
-        chat.innerHTML += `<div class="self-start bg-white/5 p-3 rounded-2xl max-w-[80%] text-gray-300"><b>AIP:</b> ${aiReply}</div>`;
-        chat.scrollTop = chat.scrollHeight;
-
-        // طلب الصوت
-        const voiceResponse = await fetch(APPS_SCRIPT_URL, {
-            method: "POST",
-            body: JSON.stringify({ action: "getVoice", text: aiReply })
-        });
-        const voiceData = await voiceResponse.json();
-
-        // التعديل هنا: التأكد من وصول الداتا وتحويلها لـ WAV
-        if (voiceData.audio && voiceData.audio.length > 100) {
-            console.log("Audio data received, length: " + voiceData.audio.length);
-            
-            const binaryString = window.atob(voiceData.audio);
-            const len = binaryString.length;
-            const bytes = new Uint8Array(len);
-            for (let i = 0; i < len; i++) {
-                bytes[i] = binaryString.charCodeAt(i);
-            }
-
-            // إضافة الـ WAV Header (24kHz لأن ده تردد Fenrir)
-            const wavHeader = createWavHeader(len, 24000); 
-            const wavBlob = new Blob([wavHeader, bytes], { type: 'audio/wav' });
-            const audioUrl = URL.createObjectURL(wavBlob);
-            
-            const audio = new Audio(audioUrl);
-            audio.play().catch(e => console.error("Autoplay blocked. Click page first."));
-        } else {
-            console.error("Audio data is empty or invalid.");
-        }
-    } catch (err) {
-        console.error("AIP Error:", err);
-    }
-}
-
-// دالة الـ Header (لازم تحطها بره askCoach)
-function createWavHeader(dataLength, sampleRate) {
-    const buffer = new ArrayBuffer(44);
-    const view = new DataView(buffer);
-    const writeString = (offset, string) => {
-        for (let i = 0; i < string.length; i++) {
-            view.setUint8(offset + i, string.charCodeAt(i));
-        }
-    };
-    writeString(0, 'RIFF');
-    view.setUint32(4, 36 + dataLength, true);
-    writeString(8, 'WAVE');
-    writeString(12, 'fmt ');
-    view.setUint32(16, 16, true);
-    view.setUint16(20, 1, true); // PCM format
-    view.setUint16(22, 1, true); // Mono
-    view.setUint32(24, sampleRate, true);
-    view.setUint32(28, sampleRate * 2, true);
-    view.setUint16(32, 2, true);
-    view.setUint16(34, 16, true);
-    writeString(36, 'data');
-    view.setUint32(40, dataLength, true);
-    return buffer;
-}
-
-        // باقي الدوال الأصلية (startListening, init, window.handleBrokerData) تفضل زي ما هي
         window.handleBrokerData = function(data) {
+            masterData = data;
             if(!data.brokersList) return;
             const broker = data.brokersList.find(b => b[0] === CURRENT_BROKER_ID);
             if(broker) {
@@ -197,6 +115,76 @@ function createWavHeader(dataLength, sampleRate) {
                     <p class="text-xs text-gray-500">Suggested: ${c[3]}</p>
                 </div>
             `).join('');
+        }
+
+        async function askCoach() {
+            const input = document.getElementById('coach-input');
+            const chat = document.getElementById('ai-coach-chat');
+            const msg = input.value;
+            if(!msg) return;
+
+            chat.innerHTML += `<div class="self-end bg-blue-600/20 p-3 rounded-2xl max-w-[80%] ml-auto text-blue-100"><b>أنا:</b> ${msg}</div>`;
+            input.value = "";
+            chat.scrollTop = chat.scrollHeight;
+
+            try {
+                const brainResponse = await fetch(APPS_SCRIPT_URL, {
+                    method: "POST",
+                    body: JSON.stringify({ action: "askAIP", message: msg })
+                });
+                const brainData = await brainResponse.json();
+                const aiReply = brainData.reply;
+
+                chat.innerHTML += `<div class="self-start bg-white/5 p-3 rounded-2xl max-w-[80%] text-gray-300"><b>AIP:</b> ${aiReply}</div>`;
+                chat.scrollTop = chat.scrollHeight;
+
+                const voiceResponse = await fetch(APPS_SCRIPT_URL, {
+                    method: "POST",
+                    body: JSON.stringify({ action: "getVoice", text: aiReply })
+                });
+                const voiceData = await voiceResponse.json();
+                
+                if (voiceData.audio) {
+                    const binaryString = window.atob(voiceData.audio);
+                    const len = binaryString.length;
+                    const bytes = new Uint8Array(len);
+                    for (let i = 0; i < len; i++) {
+                        bytes[i] = binaryString.charCodeAt(i);
+                    }
+
+                    // ADDING WAV HEADER FOR PCM DATA (24kHz)
+                    const wavHeader = createWavHeader(len, 24000); 
+                    const wavBlob = new Blob([wavHeader, bytes], { type: 'audio/wav' });
+                    const audioUrl = URL.createObjectURL(wavBlob);
+                    
+                    const audio = new Audio(audioUrl);
+                    audio.play().catch(e => console.error("Playback Error", e));
+                }
+            } catch (err) {
+                console.error("AIP Error:", err);
+            }
+        }
+
+        function createWavHeader(dataLength, sampleRate) {
+            const buffer = new ArrayBuffer(44);
+            const view = new DataView(buffer);
+            const writeString = (offset, string) => {
+                for (let i = 0; i < string.length; i++) { view.setUint8(offset + i, string.charCodeAt(i)); }
+            };
+            writeString(0, 'RIFF');
+            view.setUint32(4, 36 + dataLength, true);
+            writeString(8, 'WAVE');
+            writeString(12, 'fmt ');
+            view.setUint32(16, 16, true);
+            view.setUint16(20, 1, true); 
+            view.setUint16(22, 1, true); 
+            view.setUint32(24, sampleRate, true);
+            view.setUint32(28, sampleRate * 2, true);
+            view.setUint16(32, 2, true);
+            view.setUint16(34, 16, true);
+            writeString(36, 'data');
+            view.setUint32(40, dataLength, true);
+            return buffer;
         }
 
         function startListening() {
