@@ -161,38 +161,70 @@
 
         // 🧠 Core Flow
         async function handleFlow() {
-            const input = document.getElementById('user-input');
-            const chatBox = document.getElementById('chat-box');
-            const msg = input.value;
-            if(!msg) return;
+    const input = document.getElementById('user-input');
+    const chatBox = document.getElementById('chat-box');
+    const msg = input.value;
+    if(!msg) return;
 
-            chatBox.innerHTML += `<div class="self-end bg-blue-600/20 p-4 rounded-2xl text-blue-100 max-w-[85%] mr-auto">أنا: ${msg}</div>`;
-            input.value = "";
+    console.log("🚀 [DEBUG] Sending Message:", msg);
+    chatBox.innerHTML += `<div class="self-end bg-blue-600/20 p-4 rounded-2xl text-blue-100 max-w-[85%] mr-auto">أنا: ${msg}</div>`;
+    input.value = "";
+    chatBox.scrollTop = chatBox.scrollHeight;
+
+    try {
+        const response = await fetch(APPS_SCRIPT_URL, {
+            method: "POST",
+            body: JSON.stringify({ action: "processAI", message: msg })
+        });
+
+        console.log("📡 [DEBUG] Response Status:", response.status);
+        
+        const data = await response.json();
+        console.log("📦 [DEBUG] Full Data Received:", data);
+
+        if (data.error) {
+            console.error("❌ [SERVER ERROR]:", data.error);
+            chatBox.innerHTML += `<div class="text-red-500 text-xs p-2">Server Error: ${data.error}</div>`;
+            return;
+        }
+
+        if (data.reply) {
+            console.log("✅ [AI REPLY]:", data.reply);
+            chatBox.innerHTML += `<div class="self-start bg-white/5 p-4 rounded-2xl text-gray-300 max-w-[85%] border-r-2 border-purple-500">AIP: ${data.reply}</div>`;
             chatBox.scrollTop = chatBox.scrollHeight;
-
-            try {
-                const response = await fetch(APPS_SCRIPT_URL, {
-                    method: "POST",
-                    body: JSON.stringify({ action: "processAI", message: msg })
-                });
-                const data = await response.json();
-
-                if (data.reply) {
-                    chatBox.innerHTML += `<div class="self-start bg-white/5 p-4 rounded-2xl text-gray-300 max-w-[85%] border-r-2 border-purple-500">AIP: ${data.reply}</div>`;
-                    chatBox.scrollTop = chatBox.scrollHeight;
-                    updateStrategy(data.reply);
-                }
-                if (data.audio) playPCM(data.audio);
-            } catch (err) { console.error("Link Terminal Interrupted"); }
+            updateStrategy(data.reply);
+        } else {
+            console.warn("⚠️ [EMPTY REPLY]: AI returned success but empty text.");
         }
 
-        function updateStrategy(text) {
-            const side = document.getElementById('side-schedule');
-            const steps = text.split('\n').filter(l => l.includes('-') || l.includes(':'));
-            if(steps.length > 0) {
-                side.innerHTML = steps.map(s => `<div class="p-3 bg-purple-500/5 rounded-xl border-r-2 border-purple-500 mb-2">${s}</div>`).join('');
-            }
+        if (data.audio) {
+            console.log("🔊 [AUDIO]: Data found, length:", data.audio.length);
+            playPCM(data.audio);
+        } else {
+            console.warn("🔇 [AUDIO]: No audio data in response.");
         }
+
+    } catch (err) {
+        console.error("🔥 [FETCH CRASH]:", err);
+        chatBox.innerHTML += `<div class="text-red-500 text-xs p-2">Connection Crashed. Check Console.</div>`;
+    }
+}
+
+function updateStrategy(text) {
+    const side = document.getElementById('side-schedule');
+    console.log("📋 [DEBUG] Updating Strategy Panel...");
+    
+    // تقسيم الرد لسطور وعرضها حتى لو مفيهاش علامات خاصة
+    const steps = text.split('\n').filter(l => l.trim().length > 2);
+    
+    if(steps.length > 0) {
+        side.innerHTML = steps.map(s => `
+            <div class="p-3 bg-purple-500/5 rounded-xl border-r-2 border-purple-500 mb-2 hover:bg-purple-500/10 transition-all">
+                ${s.replace(/[*#-]/g, '').trim()}
+            </div>
+        `).join('');
+    }
+}
 
         function toggleSTT() {
             const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
