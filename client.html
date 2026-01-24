@@ -70,15 +70,9 @@
     const msg = input.value;
     if(!msg) return;
 
-    // إظهار رسالة المستخدم في الشات
     chatBox.innerHTML += `<div class="chat-bubble bg-slate-800 text-slate-100 self-end mr-auto border border-slate-700 text-left"><b>أنا:</b> ${msg}</div>`;
     input.value = "";
     chatBox.scrollTop = chatBox.scrollHeight;
-
-    // ديباج للتأكد من المعرف الفريد
-    console.log("--- بدأت عملية الإرسال ---");
-    console.log("الرسالة المرسلة:", msg);
-    console.log("المعرف الفريد المستخدم (Platform ID):", platformId);
 
     try {
         const response = await fetch(SCRIPT_URL, {
@@ -87,48 +81,31 @@
                 action: "clientAssistant",
                 message: msg,
                 history: chatHistory,
-                platformId: platformId // 🎯 الربط الأساسي لتجنب تكرار الصفوف
+                platformId: platformId 
             })
         });
 
-        // تحويل الرد لنص أولاً لرؤيته في الكونسول (Debug)
-        const rawText = await response.text();
-        console.log("الرد الخام من السكريبت:", rawText);
+        const data = await response.json();
+        const aiMessage = data.reply || "يا ريس الرد تاه في الطريق";
 
-        const data = JSON.parse(rawText);
-        console.log("البيانات بعد التحويل لـ JSON:", data);
-
-        // التأكد من وجود الرد لمنع الـ undefined
-        const aiMessage = data.reply || "يا ريس الرد تاه في الطريق، جرب تاني";
-
-        // إظهار رد كيمو في الشات
+        // إظهار الرد
         chatBox.innerHTML += `<div class="chat-bubble bg-blue-600/10 text-blue-100 self-start border border-blue-500/20"><b>كيمو:</b> ${aiMessage}</div>`;
-        
-        // تحديث تاريخ المحادثة للسياق
         chatHistory += `\nUser: ${msg}\nAIP: ${aiMessage}`;
 
-        // عرض الصور أو الفيديوهات (Media)
+        // عرض الميديا فوراً في الشات
         if(data.media && data.media.length > 0) {
-            console.log("موجود ميديا للعرض:", data.media);
             const mediaDiv = document.getElementById('media-display');
             mediaDiv.classList.remove('hidden');
             mediaDiv.innerHTML = data.media.map(link => {
-                if(link.includes('.mp4')) return `<video src="${link}" controls class="w-full shadow-2xl mb-2 rounded-2xl"></video>`;
-                return `<img src="${link}" class="w-full shadow-2xl mb-2 rounded-2xl">`;
+                if(link.includes('.mp4')) return `<video src="${link}" controls class="w-full shadow-2xl mb-4 rounded-3xl"></video>`;
+                return `<img src="${link}" class="w-full shadow-2xl mb-4 rounded-3xl border border-white/10">`;
             }).join('');
         }
 
-        // تشغيل الصوت (باستخدام الخوارزمية الخاصة بك دون تعديل)
-        if(data.audio) {
-            console.log("بدء تشغيل الصوت، الطول:", data.audio.length);
-            playAudio(data.audio); // تنادي دالتك الأصلية بنفس الـ Base64
-        }
-
+        if(data.audio) { playAudio(data.audio); }
         chatBox.scrollTop = chatBox.scrollHeight;
 
-    } catch (err) {
-        console.error("خطأ فادح في العملية:", err);
-    }
+    } catch (err) { console.error("Error:", err); }
 }
         function playAudio(base64) {
             const binaryString = window.atob(base64);
