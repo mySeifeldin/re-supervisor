@@ -54,21 +54,31 @@
 
     <script>
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzko_IIl5HcXqsCKIH1JGYyS_bfFr92HSNiP4hRmn2R6aAbLxAg51Pm8f6CMwarwphgAA/exec"; // حط رابط الـ Deployment الجديد
-        let chatHistory = "AIP: يا أهلاً بيك يا وحش! منورنا..";
+        // 🎯 توليد ID فريد للمتصفح وتخزينه للأبد في هذا الجهاز
+        let platformId = localStorage.getItem('aip_platform_id');
+        if (!platformId) {
+            platformId = 'web-' + Math.random().toString(36).substr(2, 9) + Date.now();
+            localStorage.setItem('aip_platform_id', platformId);
+        }
 
-        async function sendMessage() {
+        let chatHistory = "AIP: يا أهلاً بيك يا وحش! منورنا..";
+        
+
+       async function sendMessage() {
     const input = document.getElementById('user-input');
     const chatBox = document.getElementById('chat-box');
     const msg = input.value;
     if(!msg) return;
 
-    // إظهار رسالة المستخدم
+    // إظهار رسالة المستخدم في الشات
     chatBox.innerHTML += `<div class="chat-bubble bg-slate-800 text-slate-100 self-end mr-auto border border-slate-700 text-left"><b>أنا:</b> ${msg}</div>`;
     input.value = "";
     chatBox.scrollTop = chatBox.scrollHeight;
 
+    // ديباج للتأكد من المعرف الفريد
     console.log("--- بدأت عملية الإرسال ---");
     console.log("الرسالة المرسلة:", msg);
+    console.log("المعرف الفريد المستخدم (Platform ID):", platformId);
 
     try {
         const response = await fetch(SCRIPT_URL, {
@@ -76,11 +86,12 @@
             body: JSON.stringify({
                 action: "clientAssistant",
                 message: msg,
-                history: chatHistory
+                history: chatHistory,
+                platformId: platformId // 🎯 الربط الأساسي لتجنب تكرار الصفوف
             })
         });
 
-        // تحويل الرد لنص أولاً لرؤيته في الكونسول قبل التحويل لـ JSON
+        // تحويل الرد لنص أولاً لرؤيته في الكونسول (Debug)
         const rawText = await response.text();
         console.log("الرد الخام من السكريبت:", rawText);
 
@@ -90,23 +101,27 @@
         // التأكد من وجود الرد لمنع الـ undefined
         const aiMessage = data.reply || "يا ريس الرد تاه في الطريق، جرب تاني";
 
-        // إظهار رد كيمو
+        // إظهار رد كيمو في الشات
         chatBox.innerHTML += `<div class="chat-bubble bg-blue-600/10 text-blue-100 self-start border border-blue-500/20"><b>كيمو:</b> ${aiMessage}</div>`;
         
+        // تحديث تاريخ المحادثة للسياق
         chatHistory += `\nUser: ${msg}\nAIP: ${aiMessage}`;
 
-        // عرض الصور لو موجودة
+        // عرض الصور أو الفيديوهات (Media)
         if(data.media && data.media.length > 0) {
             console.log("موجود ميديا للعرض:", data.media);
             const mediaDiv = document.getElementById('media-display');
             mediaDiv.classList.remove('hidden');
-            mediaDiv.innerHTML = data.media.map(link => `<img src="${link}" class="w-full shadow-2xl mb-2 rounded-2xl">`).join('');
+            mediaDiv.innerHTML = data.media.map(link => {
+                if(link.includes('.mp4')) return `<video src="${link}" controls class="w-full shadow-2xl mb-2 rounded-2xl"></video>`;
+                return `<img src="${link}" class="w-full shadow-2xl mb-2 rounded-2xl">`;
+            }).join('');
         }
 
-        // تشغيل الصوت
+        // تشغيل الصوت (باستخدام الخوارزمية الخاصة بك دون تعديل)
         if(data.audio) {
             console.log("بدء تشغيل الصوت، الطول:", data.audio.length);
-            playAudio(data.audio);
+            playAudio(data.audio); // تنادي دالتك الأصلية بنفس الـ Base64
         }
 
         chatBox.scrollTop = chatBox.scrollHeight;
