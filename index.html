@@ -174,13 +174,25 @@
             }
         }
 
-        function updateMedia(links) {
-            const content = document.getElementById('media-content');
-            content.innerHTML = links.map(link => {
-                if(link.includes('.mp4')) return `<video src="${link}" autoplay loop muted class="w-full rounded-2xl shadow-inner mb-4"></video>`;
-                return `<img src="${link}" class="w-full rounded-2xl shadow-2xl mb-4 hover:scale-105 transition-transform duration-500">`;
-            }).join('');
-        }
+       function updateMedia(links) {
+    const content = document.getElementById('media-content');
+    // تنظيف المحتوى القديم وعرض الصور في شبكة (Grid)
+    content.innerHTML = `
+        <div class="grid grid-cols-1 gap-4 overflow-y-auto max-h-[700px] p-2 custom-scrollbar">
+            ${links.map(link => {
+                const cleanLink = link.trim();
+                if(cleanLink.includes('.mp4')) {
+                    return `<video src="${cleanLink}" autoplay loop muted class="w-full rounded-3xl shadow-2xl border-2 border-blue-500/20"></video>`;
+                }
+                return `
+                    <div class="relative group overflow-hidden rounded-3xl">
+                        <img src="${cleanLink}" class="w-full h-auto object-cover transition-transform duration-700 group-hover:scale-110 shadow-2xl border-2 border-white/10">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    </div>`;
+            }).join('')}
+        </div>
+    `;
+}
 
         function showLoading(show) {
             const chatBox = document.getElementById('chat-box');
