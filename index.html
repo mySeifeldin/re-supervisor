@@ -112,11 +112,14 @@
         let chatHistory = "";
 
         // 🟢 التشغيل التلقائي: الـ AI بيبدأ الكلام أول ما الصفحة تفتح
-        window.onload = () => {
-            setTimeout(() => {
-                sendQuickMsg("START_PROACTIVE_CONVERSATION", true);
-            }, 1000);
-        };
+       window.onload = () => {
+    // بنضيف مستمع لمرة واحدة: أول ما اليوزر يلمس الصفحة في أي مكان، كيمو يبدأ
+    document.body.addEventListener('click', () => {
+        if (!chatHistory) { // التأكد إنه ملقطش ضغطة قديمة
+            sendQuickMsg("START_PROACTIVE_CONVERSATION", true);
+        }
+    }, { once: true });
+};
 
         async function sendQuickMsg(text, isHidden = false) {
             if(!isHidden) {
@@ -207,13 +210,21 @@
 
         // دالة الـ Audio القديمة الخاصة بك (تعمل بشكل مثالي هنا)
         function playAudio(base64) {
-            const binaryString = window.atob(base64);
-            const bytes = new Uint8Array(binaryString.length);
-            for (let i = 0; i < binaryString.length; i++) { bytes[i] = binaryString.charCodeAt(i); }
-            const blob = new Blob([createWavHeader(binaryString.length, 24000), bytes], { type: 'audio/wav' });
-            new Audio(URL.createObjectURL(blob)).play();
-        }
-
+    if (!base64) return;
+    try {
+        const binaryString = window.atob(base64);
+        const bytes = new Uint8Array(binaryString.length);
+        for (let i = 0; i < binaryString.length; i++) { bytes[i] = binaryString.charCodeAt(i); }
+        const blob = new Blob([createWavHeader(binaryString.length, 24000), bytes], { type: 'audio/wav' });
+        const audio = new Audio(URL.createObjectURL(blob));
+        
+        audio.play().catch(e => {
+            console.warn("الصوت منتظر ضغطة منك على الشاشة أولاً");
+        });
+    } catch (err) {
+        console.error("Audio error:", err);
+    }
+}
         function createWavHeader(dataLength, sampleRate) {
             const buffer = new ArrayBuffer(44);
             const view = new DataView(buffer);
