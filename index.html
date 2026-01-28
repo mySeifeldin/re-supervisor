@@ -109,7 +109,7 @@
     </main>
 
     <script>
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxHQwlvc8o-6MwCH_UgrJVn9QPlQULQl-Yb7F8GdLB6i2RbZDikYScG54j7yjFfeP0LHA/exec";
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxM7s7-l7ksvOmH9tGzBbqrfMjU_w2uyJPiMCErlHCTE5zDN-rlDjEYFlWAJgtNeUNyyQ/exec";
         let platformId = 'AIP-' + Date.now();
         let chatHistory = "";
         let currentImages = [];
@@ -175,15 +175,15 @@
         
         if(data.reply) {
             appendMessage("AIP", data.reply, 'ai');
-            // تحديث الذاكرة فوراً عشان الرسالة الجاية الـ AI يفتكر
+            // التعديل الهام هنا: حفظ الحوار في الذاكرة
             chatHistory += `\nUser: ${msg}\nAIP: ${data.reply}\n`;
         }
         
-        // إظهار الصور لو الـ AI طلب ده
+        // عرض الصور لو الـ AI طلب
         if(data.showGallery === true) {
             const content = document.getElementById('media-content');
-            content.innerHTML = PROJECT_IMAGES.map((img, idx) => `
-                <div class="img-card shadow-lg" onclick="openLightbox(${idx})">
+            content.innerHTML = PROJECT_IMAGES.map(img => `
+                <div class="img-card shadow-lg">
                     <img src="${img}" class="w-full h-full object-cover">
                 </div>`).join('');
         }
