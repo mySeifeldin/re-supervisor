@@ -3,48 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AIP | المستشار الذكي لمشروعات التمامي</title>
+    <title>AIP | Command Center</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&family=Cairo:wght@300;700&display=swap');
-        :root { --aip-blue: #3b82f6; --temamy-gold: #c5a059; --dark-bg: #020617; }
+        :root { --aip-blue: #3b82f6; --dark-bg: #020617; }
         body { background: var(--dark-bg); color: #f8fafc; font-family: 'Cairo', sans-serif; overflow: hidden; height: 100vh; }
         .cyber-font { font-family: 'Orbitron', sans-serif; }
-
-        /* Scrollbar شيك */
-        ::-webkit-scrollbar { height: 6px; width: 4px; }
+        ::-webkit-scrollbar { height: 6px; }
         ::-webkit-scrollbar-thumb { background: var(--aip-blue); border-radius: 10px; }
-
-        /* Lightbox */
-        #lightbox {
-            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 200;
-            flex-direction: column; align-items: center; justify-content: center; backdrop-filter: blur(15px);
-        }
+        
+        #lightbox { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 200; flex-direction: column; align-items: center; justify-content: center; backdrop-filter: blur(15px); }
         .lightbox-img { max-height: 80vh; max-width: 90vw; object-fit: contain; border-radius: 1rem; }
 
-        /* الهالة الضوئية للميكروفون */
-        .mic-wave {
-            position: relative; display: flex; align-items: center; justify-content: center;
-        }
-        .mic-wave::before {
-            content: ''; position: absolute; width: 100%; height: 100%;
-            background: var(--aip-blue); border-radius: 50%;
-            animation: pulse-wave 2s infinite; opacity: 0.5; z-index: -1;
-        }
-        @keyframes pulse-wave {
-            0% { transform: scale(1); opacity: 0.5; }
-            100% { transform: scale(1.8); opacity: 0; }
-        }
+        /* Mic Styles */
+        .mic-wave { position: relative; display: flex; align-items: center; justify-content: center; }
+        .mic-wave::before { content: ''; position: absolute; width: 100%; height: 100%; background: var(--aip-blue); border-radius: 50%; animation: pulse-wave 2s infinite; opacity: 0.5; z-index: -1; }
+        
+        .mic-wave.recording::before { background: #ef4444; animation: pulse-wave 1s infinite; }
+        .mic-wave.recording button, .mic-wave.recording .mic-circle { background: #ef4444 !important; color: white !important; box-shadow: 0 0 20px rgba(239, 68, 68, 0.5); }
 
-        /* تنسيق الصور الأفقي */
-        .img-card { 
-            flex: 0 0 auto; width: 220px; height: 140px; cursor: pointer; 
-            transition: all 0.4s ease; border-radius: 1.2rem; overflow: hidden;
-            border: 2px solid rgba(255,255,255,0.05);
-        }
-        .img-card:hover { transform: translateY(-10px) scale(1.05); border-color: var(--aip-blue); }
-
+        @keyframes pulse-wave { 0% { transform: scale(1); opacity: 0.6; } 100% { transform: scale(1.8); opacity: 0; } }
+        
+        .img-card { flex: 0 0 auto; width: 220px; height: 140px; cursor: pointer; transition: all 0.4s ease; border-radius: 1.2rem; overflow: hidden; border: 2px solid rgba(255,255,255,0.05); }
+        .img-card:hover { transform: translateY(-10px); border-color: var(--aip-blue); }
         .glass { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(25px); border: 1px solid rgba(255,255,255,0.1); }
         .ai-bubble { background: rgba(30, 41, 59, 0.7); border-right: 4px solid var(--aip-blue); }
     </style>
@@ -61,8 +44,8 @@
     </div>
 
     <div id="start-overlay" class="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-[#020617]">
-        <div class="mic-wave w-32 h-32 mb-8 cursor-pointer" onclick="startKimoInteraction()">
-            <div class="w-24 h-24 bg-blue-600 rounded-full flex items-center justify-center shadow-2xl">
+        <div id="intro-mic-container" class="mic-wave w-32 h-32 mb-8 cursor-pointer" onclick="startKimoInteraction()">
+            <div class="mic-circle w-24 h-24 bg-blue-600 rounded-full flex items-center justify-center shadow-2xl transition-all">
                 <i class="fas fa-microphone text-4xl text-white"></i>
             </div>
         </div>
@@ -71,29 +54,28 @@
     </div>
 
     <main id="main-ui" class="flex-1 flex flex-col p-4 md:p-6 hidden opacity-0 transition-opacity duration-1000 overflow-hidden">
-        
         <header class="flex justify-between items-center mb-4 px-2">
-            <div class="flex flex-col">
+            <div>
                 <h1 class="cyber-font text-2xl font-black text-blue-500">AIP <span class="text-white opacity-20">AI</span></h1>
                 <span class="text-[10px] text-slate-500 tracking-widest uppercase">Official Partner of Al-Temamy</span>
             </div>
             <div class="text-right">
                 <h2 class="text-sm font-bold text-slate-300">Down Town Mansoura</h2>
-                <span class="text-[9px] bg-blue-500/10 text-blue-400 px-2 py-0.5 rounded border border-blue-500/20">Smart Assistant</span>
+                <span class="text-[9px] bg-blue-500/10 text-blue-400 px-2 py-0.5 rounded border border-blue-500/20">System Online</span>
             </div>
         </header>
 
-        <div class="flex-1 glass rounded-[2.5rem] p-6 mb-6 flex flex-col overflow-hidden relative">
-            <div id="chat-box" class="flex-1 overflow-y-auto space-y-4 mb-4 scroll-smooth pr-2"></div>
+        <div class="flex-1 glass rounded-[2.5rem] p-6 mb-6 flex flex-col overflow-hidden">
+            <div id="chat-box" class="flex-1 overflow-y-auto space-y-4 mb-4 pr-2 scroll-smooth"></div>
             
             <div id="quick-replies" class="flex flex-wrap gap-2 mb-4 opacity-0 transition-opacity">
-                <button onclick="sendQuickMsg('📍 الموقع الإستراتيجي')" class="bg-blue-900/30 border border-blue-500/20 px-4 py-2 rounded-full text-xs">📍 الموقع</button>
+                <button onclick="sendQuickMsg('📍 الموقع')" class="bg-blue-900/30 border border-blue-500/20 px-4 py-2 rounded-full text-xs">📍 الموقع</button>
                 <button onclick="sendQuickMsg('🏗️ سابقة الأعمال')" class="bg-blue-900/30 border border-blue-500/20 px-4 py-2 rounded-full text-xs">🏗️ سابقة الأعمال</button>
             </div>
 
             <div class="flex gap-3 items-center bg-slate-950/50 p-2 rounded-2xl border border-slate-800">
-                <div class="mic-wave w-12 h-12">
-                    <button onclick="startChatVoice()" id="chat-mic" class="w-10 h-10 bg-blue-600/20 rounded-full flex items-center justify-center text-blue-400">
+                <div id="chat-mic-container" class="mic-wave w-12 h-12">
+                    <button onclick="startChatVoice()" class="w-10 h-10 bg-blue-600/20 rounded-full flex items-center justify-center text-blue-400 transition-all">
                         <i class="fas fa-microphone"></i>
                     </button>
                 </div>
@@ -102,13 +84,11 @@
             </div>
         </div>
 
-        <div id="media-content" class="flex gap-4 overflow-x-auto py-4 px-2 custom-scrollbar min-h-[160px]">
-            <div class="text-slate-700 flex items-center justify-center w-full italic text-sm">سيتم عرض صور المشروع هنا...</div>
-        </div>
-
+        <div id="media-content" class="flex gap-4 overflow-x-auto py-4 px-2 custom-scrollbar min-h-[160px]"></div>
     </main>
 
     <script>
+        // (نفس الـ JavaScript مع إضافة كلاسات الـ recording في الـ recognition كما بالأعلى)
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxHQwlvc8o-6MwCH_UgrJVn9QPlQULQl-Yb7F8GdLB6i2RbZDikYScG54j7yjFfeP0LHA/exec";
         let platformId = 'AIP-' + Date.now();
         let chatHistory = "";
@@ -119,10 +99,21 @@
         if ('webkitSpeechRecognition' in window) {
             recognition = new webkitSpeechRecognition();
             recognition.lang = 'ar-EG';
+            
+            recognition.onstart = () => {
+                document.getElementById('intro-mic-container').classList.add('recording');
+                document.getElementById('chat-mic-container').classList.add('recording');
+            };
+
             recognition.onresult = (e) => {
                 const text = e.results[0][0].transcript;
                 if(document.getElementById('start-overlay').style.display !== 'none') finalizeIntro(text);
                 else { document.getElementById('user-input').value = text; sendMessage(); }
+            };
+
+            recognition.onend = () => {
+                document.getElementById('intro-mic-container').classList.remove('recording');
+                document.getElementById('chat-mic-container').classList.remove('recording');
             };
         }
 
@@ -132,7 +123,7 @@
         function finalizeIntro(name) {
             document.getElementById('start-overlay').style.display = 'none';
             document.getElementById('main-ui').classList.remove('hidden');
-            document.getElementById('main-ui').classList.add('opacity-100');
+            setTimeout(() => document.getElementById('main-ui').classList.add('opacity-100'), 50);
             sendQuickMsg(name);
         }
 
