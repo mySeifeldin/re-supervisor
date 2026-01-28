@@ -63,14 +63,18 @@
 
     <script>
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxHQwlvc8o-6MwCH_UgrJVn9QPlQULQl-Yb7F8GdLB6i2RbZDikYScG54j7yjFfeP0LHA/exec";
-        const projectGallery = ["https://i.ibb.co/HLV2K3zf/Whats-App-Image-2026-01-25-at-3-21-50-PM.jpg", "https://i.ibb.co/gbz1PFR4/Whats-App-Image-2026-01-25-at-3-21-49-PM.jpg"];
-        const introImages = ["https://i.ibb.co/HLV2K3zf/Whats-App-Image-2026-01-25-at-3-21-50-PM.jpg", "https://i.ibb.co/gbz1PFR4/Whats-App-Image-2026-01-25-at-3-21-49-PM.jpg"];
-        const introTexts = ["مرحباً بك في داون تاون", "مشروع أصيل والتمامي", "استثمارك المضمون"];
+        const projectGallery = [
+            "https://i.ibb.co/HLV2K3zf/Whats-App-Image-2026-01-25-at-3-21-50-PM.jpg", 
+            "https://i.ibb.co/gbz1PFR4/Whats-App-Image-2026-01-25-at-3-21-49-PM.jpg",
+            "https://i.ibb.co/Hf0bZKnv/Whats-App-Image-2026-01-25-at-3-21-48-PM.jpg"
+        ];
+        const introImages = projectGallery;
+        const introTexts = ["مرحباً بك في داون تاون", "مشروع شركة التمامي", "المنصورة الجديدة - استثمارك الراقي"];
         let chatHistory = ""; const platformId = "AIP-" + Date.now();
 
         function initPresentation() {
             const container = document.getElementById('bg-container');
-            container.innerHTML = introImages.map((src, i) => `<div class="bg-slide ${i===0?'active':''}" style="background-image:url('${src}')"></div>`).join('');
+            container.innerHTML = introImages.slice(0, 2).map((src, i) => `<div class="bg-slide ${i===0?'active':''}" style="background-image:url('${src}')"></div>`).join('');
             let idx = 0; setInterval(() => {
                 idx = (idx + 1) % introTexts.length;
                 document.getElementById('dynamic-text').innerText = introTexts[idx];
@@ -83,39 +87,34 @@
             document.getElementById('presentation-layer').style.display = 'none';
             document.getElementById('main-ui').classList.remove('hidden');
             setTimeout(() => document.getElementById('main-ui').classList.add('opacity-100'), 50);
-            appendMessage("كيمو", "أهلاً بك يا فندم! نورت شركة أصيل والتمامي. اتشرف باسم حضرتك؟", "ai");
+            appendMessage("كيمو", "تحياتي لسيادتك يا فندم، نورت شركة التمامي. أتشرف بمعرفة اسم حضرتك؟", "ai");
         }
 
-      async function apiCall(msg) {
-    showLoading(true);
-    try {
-        const response = await fetch(SCRIPT_URL, {
-            method: "POST",
-            body: JSON.stringify({ 
-                action: "clientAssistant", 
-                message: msg, 
-                history: chatHistory.substring(chatHistory.length - 2000), // إرسال آخر 2000 حرف فقط لتجنب ضغط الـ API
-                platformId: platformId 
-            })
-        });
-        const data = await response.json();
-        showLoading(false);
-        
-        if(data.reply) {
-            appendMessage("كيمو", data.reply, "ai");
-            // تحديث التاريخ بشكل نظيف
-            chatHistory += `\nUser: ${msg}\nAIP: ${data.reply}`;
-            if(data.showWhatsApp) document.getElementById('wa-referral').style.display = "flex";
+        async function apiCall(msg) {
+            showLoading(true);
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: "POST",
+                    body: JSON.stringify({ 
+                        action: "clientAssistant", 
+                        message: msg, 
+                        history: chatHistory.substring(chatHistory.length - 2000), 
+                        platformId: platformId 
+                    })
+                });
+                const data = await response.json();
+                showLoading(false);
+                if(data.reply) {
+                    appendMessage("كيمو", data.reply, "ai");
+                    chatHistory += `\nUser: ${msg}\nAIP: ${data.reply}`;
+                    if(data.showWhatsApp) document.getElementById('wa-referral').style.display = "flex";
+                }
+                // معالجة الكلمة السرية لإظهار الصور
+                if(data.media && data.media.includes("SHOW_PROJECT_IMAGES")) {
+                    updateMedia(projectGallery);
+                }
+            } catch(e) { showLoading(false); }
         }
-        
-        if(data.media && data.media.includes("SHOW_PROJECT_IMAGES")) {
-            updateMedia(projectGallery);
-        }
-    } catch(e) { 
-        console.error("Error:", e);
-        showLoading(false); 
-    }
-}
 
         function updateMedia(images) {
             const container = document.getElementById('media-scroll-container');
@@ -123,18 +122,12 @@
             container.scrollLeft = 0;
         }
 
-       function appendMessage(sender, text, type) {
-    const chatBox = document.getElementById('chat-box');
-    
-    // تنظيف النص من أي روابط صور قد تظهر بالخطأ في النص
-    const cleanText = text.replace(/https?:\/\/[^\s]+/g, "").trim();
-    
-    chatBox.innerHTML += `<div class="p-4 rounded-2xl ${type === 'user' ? 'bg-blue-600 self-end ml-12' : 'ai-bubble self-start mr-12'} shadow-lg border border-white/5 animate-slide">
-        <p class="text-sm leading-relaxed">${cleanText}</p></div>`;
-    
-    // Scroll to bottom
-    chatBox.scrollTo({ top: chatBox.scrollHeight, behavior: 'smooth' });
-}
+        function appendMessage(sender, text, type) {
+            const chatBox = document.getElementById('chat-box');
+            const cleanText = text.replace(/SHOW_PROJECT_IMAGES/g, "").trim();
+            chatBox.innerHTML += `<div class="p-4 rounded-2xl ${type === 'user' ? 'bg-blue-600 self-end ml-12' : 'ai-bubble self-start mr-12'} shadow-lg"><p class="text-sm leading-relaxed">${cleanText}</p></div>`;
+            chatBox.scrollTo({ top: chatBox.scrollHeight, behavior: 'smooth' });
+        }
 
         function startVoiceIntro() {
             const rec = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
