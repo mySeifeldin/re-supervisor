@@ -9,66 +9,49 @@
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;700;900&family=Orbitron:wght@500;900&display=swap" rel="stylesheet">
     
     <style>
-        :root { --neon-blue: #00f3ff; --deep-space: #050b14; }
+        :root { --neon-blue: #00f3ff; --deep-space: #050b14; --whatsapp-green: #25D366; }
         body { background-color: var(--deep-space); color: #e2e8f0; font-family: 'Cairo', sans-serif; overflow: hidden; height: 100vh; position: relative; }
         .cyber-font { font-family: 'Orbitron', sans-serif; letter-spacing: 2px; }
         
-        /* --- 1. Dynamic Background Styles --- */
+        /* BG & UI Styles (نفس الستايلات السابقة) */
         #bg-slideshow { position: fixed; inset: 0; z-index: -1; pointer-events: none; }
-        .bg-slide { 
-            position: absolute; inset: 0; background-size: cover; background-position: center; 
-            opacity: 0; transition: opacity 2s ease-in-out, transform 10s ease-in-out; 
-            transform: scale(1);
-        }
-        .bg-slide.active { opacity: 0.4; transform: scale(1.1); } /* 0.4 opacity to keep text readable */
+        .bg-slide { position: absolute; inset: 0; background-size: cover; background-position: center; opacity: 0; transition: opacity 2s, transform 10s; transform: scale(1); }
+        .bg-slide.active { opacity: 0.4; transform: scale(1.1); }
         .overlay { position: absolute; inset: 0; background: radial-gradient(circle at center, rgba(5, 11, 20, 0.7) 0%, #050b14 90%); z-index: 0; }
-
-        /* --- 2. Chat UI Styles --- */
-        /* Scrollbar */
+        
         ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: var(--neon-blue); border-radius: 99px; }
-        
-        /* Message Bubbles */
         .msg-ai { background: rgba(0, 243, 255, 0.08); border-right: 3px solid var(--neon-blue); border-radius: 12px 0 12px 12px; backdrop-filter: blur(5px); }
-        .msg-user { background: linear-gradient(135deg, #2563eb, #1d4ed8); border-radius: 12px 12px 0 12px; box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3); }
+        .msg-user { background: linear-gradient(135deg, #2563eb, #1d4ed8); border-radius: 12px 12px 0 12px; }
         
-        /* Quick Action Buttons (Neon Chips) */
-        .quick-chip {
-            background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(0, 243, 255, 0.3);
-            color: var(--neon-blue); padding: 8px 16px; border-radius: 99px; font-size: 0.8rem; font-weight: bold;
-            cursor: pointer; transition: all 0.3s; white-space: nowrap; backdrop-filter: blur(4px);
-            display: flex; items-center; gap: 6px;
+        /* WhatsApp Button Style */
+        #whatsapp-btn {
+            background: linear-gradient(45deg, #25D366, #128C7E);
+            box-shadow: 0 0 20px rgba(37, 211, 102, 0.4);
+            animation: pulse-green 2s infinite;
         }
-        .quick-chip:hover { background: var(--neon-blue); color: #000; box-shadow: 0 0 20px var(--neon-blue); transform: translateY(-2px); }
-        .quick-chip i { font-size: 1rem; }
+        @keyframes pulse-green { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
 
-        /* Image Cards */
-        .gallery-card { 
-            min-width: 240px; height: 150px; border-radius: 16px; overflow: hidden; position: relative; 
-            border: 1px solid rgba(0, 243, 255, 0.2); transition: all 0.3s ease; cursor: pointer;
-        }
+        .quick-chip { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(0, 243, 255, 0.3); color: var(--neon-blue); padding: 8px 16px; border-radius: 99px; font-size: 0.8rem; cursor: pointer; transition: all 0.3s; white-space: nowrap; display: flex; items-center; gap: 6px; }
+        .quick-chip:hover { background: var(--neon-blue); color: #000; box-shadow: 0 0 20px var(--neon-blue); }
+
+        .gallery-card { min-width: 240px; height: 150px; border-radius: 16px; overflow: hidden; border: 1px solid rgba(0, 243, 255, 0.2); transition: 0.3s; cursor: pointer; }
         .gallery-card:hover { transform: scale(1.05); border-color: var(--neon-blue); }
 
-        /* Mic Animation */
         .mic-active { color: #ef4444 !important; border-color: #ef4444 !important; animation: pulse-red 1.5s infinite; background: rgba(239, 68, 68, 0.1) !important; }
         @keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
 
-        /* Animations */
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .animate-fade { animation: fadeIn 0.4s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .typing-dot { width: 6px; height: 6px; background: var(--neon-blue); border-radius: 50%; animation: typing 1.4s infinite; }
         @keyframes typing { 0%, 100% { opacity: 0.2; } 50% { opacity: 1; } }
-
-        /* Lightbox */
+        
         #lightbox { backdrop-filter: blur(20px); background: rgba(5, 11, 20, 0.95); }
     </style>
 </head>
 <body class="flex flex-col h-screen p-0 md:p-4">
 
-    <div id="bg-slideshow">
-        <div class="overlay"></div>
-        </div>
+    <div id="bg-slideshow"><div class="overlay"></div></div>
 
     <div id="lightbox" class="hidden fixed inset-0 z-50 flex-col items-center justify-center">
         <button onclick="closeLightbox()" class="absolute top-6 right-6 text-white text-4xl hover:text-red-500 transition"><i class="fas fa-times"></i></button>
@@ -78,7 +61,6 @@
     </div>
 
     <main class="flex-1 flex flex-col max-w-5xl mx-auto w-full h-full md:rounded-3xl border border-slate-700/50 bg-[#0a1120]/60 backdrop-blur-md shadow-2xl overflow-hidden relative">
-        
         <header class="p-4 border-b border-slate-700/50 flex justify-between items-center bg-black/20">
             <div class="flex items-center gap-3">
                 <div class="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center border border-blue-500/50 shadow-[0_0_15px_rgba(59,130,246,0.5)]">
@@ -94,65 +76,62 @@
             </div>
         </header>
 
-        <div id="chat-container" class="flex-1 overflow-y-auto p-4 space-y-5 scroll-smooth relative">
+        <div id="chat-container" class="flex-1 overflow-y-auto p-4 space-y-5 scroll-smooth relative"></div>
+
+        <div id="whatsapp-container" class="hidden flex-col items-center justify-center p-6 text-center animate-fade absolute inset-0 z-40 bg-black/80 backdrop-blur-sm">
+            <div class="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center mb-4 shadow-[0_0_30px_#25D366]">
+                <i class="fas fa-check text-4xl text-white"></i>
             </div>
+            <h2 class="text-2xl font-bold text-white mb-2">تم تسجيل بياناتك بنجاح!</h2>
+            <p class="text-slate-300 mb-6">سيقوم فريق المبيعات بالتواصل معك. يمكنك أيضاً مراسلتنا الآن.</p>
+            <a href="https://wa.me/201000000000" target="_blank" id="whatsapp-btn" class="flex items-center gap-2 px-8 py-4 rounded-full text-white font-bold text-lg hover:scale-105 transition">
+                <i class="fab fa-whatsapp text-2xl"></i> تواصل عبر واتساب
+            </a>
+            <button onclick="hideWhatsAppSuccess()" class="mt-4 text-slate-500 text-sm hover:text-white underline">العودة للمحادثة</button>
+        </div>
 
         <div id="gallery-container" class="hidden transition-all duration-500 border-t border-slate-700/50 bg-black/60">
             <div class="px-4 py-2 flex items-center justify-between">
                 <span class="text-xs text-blue-400 font-bold uppercase tracking-widest"><i class="fas fa-images mr-1"></i> Project Visuals</span>
                 <button onclick="toggleGallery()" class="text-slate-500 hover:text-white"><i class="fas fa-chevron-down"></i></button>
             </div>
-            <div id="gallery-scroll" class="flex gap-4 overflow-x-auto px-4 pb-4 scroll-smooth">
-                </div>
+            <div id="gallery-scroll" class="flex gap-4 overflow-x-auto px-4 pb-4 scroll-smooth"></div>
         </div>
 
         <div class="border-t border-slate-700/50 bg-[#0a1120]/80">
-            
             <div class="flex gap-2 px-4 pt-3 overflow-x-auto no-scrollbar pb-1">
-                <button onclick="sendQuickMsg('📍 ممكن الموقع بالتفصيل؟')" class="quick-chip">
-                    <i class="fas fa-map-marker-alt"></i> الموقع
-                </button>
-                <button onclick="sendQuickMsg('💰 تفاصيل نظم الدفع والسداد؟')" class="quick-chip">
-                    <i class="fas fa-wallet"></i> نظم الدفع
-                </button>
-                <button onclick="sendQuickMsg('📝 مهتم جداً وعايز أحجز')" class="quick-chip border-green-500 text-green-400 hover:bg-green-500 hover:shadow-green-500/50">
-                    <i class="fas fa-check-circle"></i> احجز معنا
-                </button>
+                <button onclick="sendQuickMsg('📍 ممكن الموقع بالتفصيل؟')" class="quick-chip"><i class="fas fa-map-marker-alt"></i> الموقع</button>
+                <button onclick="sendQuickMsg('💰 تفاصيل نظم الدفع والسداد؟')" class="quick-chip"><i class="fas fa-wallet"></i> نظم الدفع</button>
+                <button onclick="sendQuickMsg('📝 مهتم جداً وعايز أحجز')" class="quick-chip border-green-500 text-green-400 hover:bg-green-500 hover:shadow-green-500/50"><i class="fas fa-check-circle"></i> احجز معنا</button>
             </div>
 
             <div class="p-4">
                 <div class="flex gap-3 relative">
-                    <button onclick="startVoiceInput()" id="mic-btn" 
-                        class="bg-slate-800/80 hover:bg-slate-700 text-slate-400 px-4 rounded-xl transition-all border border-slate-600 flex items-center justify-center w-14">
-                        <i class="fas fa-microphone"></i>
-                    </button>
-
-                    <input type="text" id="user-msg" 
-                        class="w-full bg-slate-900/60 border border-slate-600 text-white rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 focus:shadow-[0_0_15px_rgba(59,130,246,0.3)] transition-all placeholder-slate-500"
-                        placeholder="Type your message..." onkeypress="handleEnter(event)">
-                    
-                    <button onclick="sendUserMessage()" 
-                        class="bg-blue-600 hover:bg-blue-500 text-white px-6 rounded-xl transition-all shadow-lg shadow-blue-900/50 font-bold">
-                        <i class="fas fa-paper-plane"></i>
-                    </button>
+                    <button onclick="startVoiceInput()" id="mic-btn" class="bg-slate-800/80 hover:bg-slate-700 text-slate-400 px-4 rounded-xl transition-all border border-slate-600 flex items-center justify-center w-14"><i class="fas fa-microphone"></i></button>
+                    <input type="text" id="user-msg" class="w-full bg-slate-900/60 border border-slate-600 text-white rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 focus:shadow-[0_0_15px_rgba(59,130,246,0.3)] transition-all placeholder-slate-500" placeholder="Type your message..." onkeypress="handleEnter(event)">
+                    <button onclick="sendUserMessage()" class="bg-blue-600 hover:bg-blue-500 text-white px-6 rounded-xl transition-all shadow-lg shadow-blue-900/50 font-bold"><i class="fas fa-paper-plane"></i></button>
                 </div>
             </div>
         </div>
     </main>
 
     <script>
-        // 🔴 PASTE YOUR NEW DEPLOYMENT URL HERE 🔴
-        const API_URL = "https://script.google.com/macros/s/AKfycbzAa5nzLn8HUKXX86BOqAloikoyqAotdyANKUnOPkNi2y1LB20waZfs8MM_GHhycuSyzQ/exec";
+        const API_URL = "https://script.google.com/macros/s/AKfycbz3FhsrTx_ltEixyKaA_rdLSGPyUMa-r3KYotKm8PhYETA6KySiHnl1m6uQUpIciB8npw/exec";
         
+        // 🔴 ضع رقم الواتساب الخاص بالمبيعات هنا (بدون +)
+        const SALES_WHATSAPP_NUMBER = "201000000000"; 
+
         let chatHistory = "";
         let platformId = "WEB-" + Date.now();
-        let galleryImages = []; // Global Store for Images
+        let galleryImages = [];
         let recognition;
 
         window.onload = function() {
             initChat();
             setupVoice();
-            initBackgroundSystem(); // 🚀 Fetch images for background immediately
+            initBackgroundSystem();
+            // تحديث رابط الواتساب
+            document.getElementById('whatsapp-btn').href = `https://wa.me/${SALES_WHATSAPP_NUMBER}`;
         };
 
         function initChat() {
@@ -160,20 +139,15 @@
             apiCall("START_CONVERSATION", true); 
         }
 
-        // --- 1. DYNAMIC BACKGROUND LOGIC ---
         async function initBackgroundSystem() {
             try {
-                // Fetch images straight away
                 const res = await fetch(API_URL, {
                     method: "POST",
                     body: JSON.stringify({ action: "fetchProjectImages" })
                 });
                 const data = await res.json();
-                
                 if (data.images && data.images.length > 0) {
-                    galleryImages = data.images; // Store for later
-                    
-                    // Create Background Slides
+                    galleryImages = data.images;
                     const bgContainer = document.getElementById('bg-slideshow');
                     galleryImages.forEach((url, index) => {
                         const div = document.createElement('div');
@@ -181,47 +155,37 @@
                         div.style.backgroundImage = `url('${url}')`;
                         bgContainer.appendChild(div);
                     });
-
-                    // Start Rotation Animation
                     let currentSlide = 0;
                     const slides = document.querySelectorAll('.bg-slide');
                     setInterval(() => {
                         slides[currentSlide].classList.remove('active');
                         currentSlide = (currentSlide + 1) % slides.length;
                         slides[currentSlide].classList.add('active');
-                    }, 5000); // Change every 5 seconds
+                    }, 5000);
                 }
             } catch (e) { console.error("BG Error", e); }
         }
 
-        // --- 2. QUICK ACTION LOGIC ---
         function sendQuickMsg(text) {
             document.getElementById('user-msg').value = text;
             sendUserMessage();
         }
 
-        // --- 3. VOICE LOGIC ---
         function setupVoice() {
             if ('webkitSpeechRecognition' in window) {
                 recognition = new webkitSpeechRecognition();
                 recognition.lang = 'ar-EG'; 
                 recognition.continuous = false;
                 recognition.interimResults = false;
-
                 recognition.onstart = () => document.getElementById('mic-btn').classList.add('mic-active');
                 recognition.onend = () => document.getElementById('mic-btn').classList.remove('mic-active');
                 recognition.onresult = (e) => {
-                    const transcript = e.results[0][0].transcript;
-                    document.getElementById('user-msg').value = transcript;
+                    document.getElementById('user-msg').value = e.results[0][0].transcript;
                     sendUserMessage();
                 };
-            } else {
-                document.getElementById('mic-btn').style.display = 'none';
-            }
+            } else { document.getElementById('mic-btn').style.display = 'none'; }
         }
         function startVoiceInput() { recognition ? recognition.start() : alert("Not Supported"); }
-
-        // --- 4. CHAT LOGIC ---
         function handleEnter(e) { if (e.key === "Enter") sendUserMessage(); }
 
         function sendUserMessage() {
@@ -255,9 +219,16 @@
                     else chatHistory += `\nAIP: ${data.reply}`;
                 }
 
-                if (data.showGallery === true) {
-                    openGalleryDrawer(); // Use local function since images are already fetched
+                if (data.showGallery === true) openGalleryDrawer();
+
+                // 🚀 إظهار شاشة الواتساب النهائية فقط عند استلام الأمر
+                if (data.showWhatsApp === true) {
+                    setTimeout(() => {
+                        document.getElementById('whatsapp-container').classList.remove('hidden');
+                        document.getElementById('whatsapp-container').classList.add('flex');
+                    }, 2000); // تأخير بسيط عشان يقرأ رسالة الختام الأول
                 }
+
             } catch (err) {
                 removeTyping();
                 addMessage("جاري إعادة الاتصال بالخادم...", 'ai');
@@ -288,14 +259,11 @@
         function removeTyping() { document.getElementById('typing-indicator')?.remove(); }
         function scrollToBottom() { const c = document.getElementById('chat-container'); setTimeout(() => c.scrollTop = c.scrollHeight, 50); }
 
-        // --- 5. GALLERY LOGIC ---
         function openGalleryDrawer() {
             const container = document.getElementById('gallery-container');
             const scroll = document.getElementById('gallery-scroll');
             container.classList.remove('hidden');
             scrollToBottom();
-
-            // Populate from global cache (no need to fetch again)
             if (galleryImages.length > 0) {
                 scroll.innerHTML = galleryImages.map(url => `
                     <div class="gallery-card shrink-0" onclick="openLightbox('${url}')">
@@ -312,6 +280,10 @@
         function closeLightbox() {
             const lb = document.getElementById('lightbox');
             lb.classList.add('hidden'); lb.classList.remove('flex');
+        }
+        function hideWhatsAppSuccess() {
+            document.getElementById('whatsapp-container').classList.add('hidden');
+            document.getElementById('whatsapp-container').classList.remove('flex');
         }
     </script>
 </body>
