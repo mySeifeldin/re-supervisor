@@ -13,7 +13,7 @@
         body { background-color: var(--deep-space); color: #e2e8f0; font-family: 'Cairo', sans-serif; overflow: hidden; height: 100vh; }
         .cyber-font { font-family: 'Orbitron', sans-serif; letter-spacing: 2px; }
         
-        /* Scrollbar */
+        /* Scrollbar Design */
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: #0f172a; }
         ::-webkit-scrollbar-thumb { background: var(--neon-blue); border-radius: 4px; box-shadow: 0 0 10px var(--neon-blue); }
@@ -29,18 +29,6 @@
         }
         .gallery-card:hover { transform: scale(1.05); box-shadow: 0 0 20px rgba(0, 243, 255, 0.3); border-color: var(--neon-blue); }
         
-        /* Quick Reply Chips */
-        .quick-chip {
-            background: rgba(0, 243, 255, 0.05); border: 1px solid rgba(0, 243, 255, 0.3);
-            color: var(--neon-blue); padding: 8px 16px; border-radius: 99px; font-size: 0.85rem;
-            cursor: pointer; transition: all 0.3s; white-space: nowrap;
-        }
-        .quick-chip:hover { background: var(--neon-blue); color: #000; box-shadow: 0 0 15px var(--neon-blue); }
-
-        /* Mic Animation */
-        .mic-active { color: #ef4444 !important; animation: pulse-red 1.5s infinite; }
-        @keyframes pulse-red { 0% { transform: scale(1); text-shadow: 0 0 0 rgba(239, 68, 68, 0.7); } 70% { transform: scale(1.1); text-shadow: 0 0 20px rgba(239, 68, 68, 0); } 100% { transform: scale(1); } }
-
         /* Animations */
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .animate-fade { animation: fadeIn 0.4s ease-out forwards; }
@@ -60,7 +48,7 @@
         </div>
     </div>
 
-    <main class="flex-1 flex flex-col max-w-5xl mx-auto w-full h-full md:rounded-3xl border border-slate-800 bg-[#0a1120]/95 backdrop-blur-xl shadow-2xl overflow-hidden relative">
+    <main class="flex-1 flex flex-col max-w-5xl mx-auto w-full h-full md:rounded-3xl border border-slate-800 bg-[#0a1120]/90 backdrop-blur-xl shadow-2xl overflow-hidden relative">
         
         <header class="p-4 border-b border-slate-800 flex justify-between items-center bg-black/20">
             <div class="flex items-center gap-3">
@@ -77,7 +65,7 @@
             </div>
         </header>
 
-        <div id="chat-container" class="flex-1 overflow-y-auto p-4 space-y-5 scroll-smooth relative pb-20">
+        <div id="chat-container" class="flex-1 overflow-y-auto p-4 space-y-5 scroll-smooth relative">
             </div>
 
         <div id="gallery-container" class="hidden transition-all duration-500 border-t border-slate-800 bg-black/40">
@@ -90,92 +78,42 @@
             </div>
         </div>
 
-        <div class="border-t border-slate-800 bg-[#0a1120]">
-            
-            <div id="quick-actions" class="flex gap-2 px-4 pt-3 overflow-x-auto no-scrollbar">
-                <button onclick="sendQuickMsg('📍 الموقع فين بالظبط؟')" class="quick-chip">📍 الموقع</button>
-                <button onclick="sendQuickMsg('💰 إيه أنظمة السداد؟')" class="quick-chip">💰 فترة السداد</button>
-                <button onclick="sendQuickMsg('📝 عايز أحجز فوراً')" class="quick-chip border-blue-500 bg-blue-500/10 text-blue-400">🚀 ابدأ حجز فوراً</button>
-            </div>
-
-            <div class="p-4 pt-2">
-                <div class="flex gap-3 relative items-center">
-                    
-                    <button onclick="startVoiceRecognition()" id="mic-btn" 
-                        class="w-12 h-12 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 flex items-center justify-center transition-all border border-slate-700">
-                        <i class="fas fa-microphone text-xl"></i>
-                    </button>
-
-                    <input type="text" id="user-msg" 
-                        class="flex-1 bg-slate-900/50 border border-slate-700 text-white rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 focus:shadow-[0_0_15px_rgba(59,130,246,0.2)] transition-all placeholder-slate-600"
-                        placeholder="اكتب استفسارك هنا..." onkeypress="handleEnter(event)">
-                    
-                    <button onclick="sendUserMessage()" 
-                        class="bg-blue-600 hover:bg-blue-500 text-white w-12 h-12 rounded-xl transition-all shadow-lg shadow-blue-900/50 flex items-center justify-center">
-                        <i class="fas fa-paper-plane text-lg"></i>
-                    </button>
-                </div>
+        <div class="p-4 border-t border-slate-800 bg-black/40">
+            <div class="flex gap-3 relative">
+                <input type="text" id="user-msg" 
+                    class="w-full bg-slate-900/50 border border-slate-700 text-white rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 focus:shadow-[0_0_15px_rgba(59,130,246,0.2)] transition-all placeholder-slate-600"
+                    placeholder="Ask about Down Town..." onkeypress="handleEnter(event)">
+                
+                <button onclick="sendUserMessage()" 
+                    class="bg-blue-600 hover:bg-blue-500 text-white px-6 rounded-xl transition-all shadow-lg shadow-blue-900/50 font-bold">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
             </div>
         </div>
     </main>
 
     <script>
-        // 🔴🔴 استبدل هذا الرابط برابط الـ Web App الخاص بك 🔴🔴
-        const API_URL = "https://script.google.com/macros/s/AKfycbxM7s7-l7ksvOmH9tGzBbqrfMjU_w2uyJPiMCErlHCTE5zDN-rlDjEYFlWAJgtNeUNyyQ/exec";
+        // 🔴 PASTE YOUR NEW DEPLOYMENT URL HERE 🔴
+        const API_URL = "https://script.google.com/macros/s/AKfycbwhKMK_iV5TIrLc4gyRUUip13HwNss-3GFhERjAvTA5ggR2AndlhDHHDx_rd4fRlVFHBg/exec";
         
         let chatHistory = "";
         let platformId = "WEB-" + Date.now();
         let galleryLoaded = false;
-        let recognition;
 
-        // Auto-Start
-        window.onload = function() { initChat(); };
-
-        // --- Voice Recognition Setup ---
-        if ('webkitSpeechRecognition' in window) {
-            recognition = new webkitSpeechRecognition();
-            recognition.lang = 'ar-EG'; // اللهجة المصرية
-            recognition.continuous = false;
-            recognition.interimResults = false;
-
-            recognition.onstart = () => {
-                const btn = document.getElementById('mic-btn');
-                btn.classList.add('mic-active');
-                btn.innerHTML = '<i class="fas fa-wave-square"></i>';
-            };
-
-            recognition.onend = () => {
-                const btn = document.getElementById('mic-btn');
-                btn.classList.remove('mic-active');
-                btn.innerHTML = '<i class="fas fa-microphone text-xl"></i>';
-            };
-
-            recognition.onresult = (event) => {
-                const transcript = event.results[0][0].transcript;
-                document.getElementById('user-msg').value = transcript;
-                sendUserMessage(); // Send automatically after speaking
-            };
-        } else {
-            document.getElementById('mic-btn').style.display = 'none'; // Hide if not supported
-        }
-
-        function startVoiceRecognition() {
-            if (recognition) recognition.start();
-            else alert("المتصفح لا يدعم الأوامر الصوتية");
-        }
+        // Auto-Start on Load
+        window.onload = function() {
+            initChat();
+        };
 
         function initChat() {
+            // Simulate typing then send the trigger
             showTyping();
+            // Send special "START_CONVERSATION" trigger invisible to user
             apiCall("START_CONVERSATION", true); 
         }
 
         function handleEnter(e) {
             if (e.key === "Enter") sendUserMessage();
-        }
-
-        function sendQuickMsg(text) {
-            document.getElementById('user-msg').value = text;
-            sendUserMessage();
         }
 
         function sendUserMessage() {
@@ -194,7 +132,7 @@
                 const payload = {
                     action: "clientAssistant",
                     message: msg,
-                    history: isSystemTrigger ? "" : chatHistory,
+                    history: isSystemTrigger ? "" : chatHistory, // Reset history if start
                     platformId: platformId
                 };
 
@@ -211,19 +149,22 @@
                     if (!isSystemTrigger) {
                         chatHistory += `\nUser: ${msg}\nAIP: ${data.reply}`;
                     } else {
-                        chatHistory += `\nAIP: ${data.reply}`;
+                        chatHistory += `\nAIP: ${data.reply}`; // Only save AI part for intro
                     }
                 }
 
+                // 🌟 AI COMMAND: SHOW IMAGES 🌟
                 if (data.showGallery === true) {
                     loadProjectImages();
                 }
 
             } catch (err) {
                 removeTyping();
-                addMessage("نظام AIP يواجه ضغطاً، يرجى المحاولة مرة أخرى.", 'ai');
+                addMessage("نظام AIP يواجه ضغطاً في الشبكة، يرجى المحاولة مرة أخرى.", 'ai');
             }
         }
+
+        // --- UI Functions ---
 
         function addMessage(text, sender) {
             const container = document.getElementById('chat-container');
@@ -232,9 +173,7 @@
             
             const bubble = document.createElement('div');
             bubble.className = `max-w-[85%] md:max-w-[70%] p-4 text-sm md:text-base leading-relaxed shadow-lg ${sender === 'user' ? 'msg-user text-white' : 'msg-ai text-slate-200'}`;
-            // Convert newlines to breaks and simple markdown for bold
-            let formattedText = text.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-            bubble.innerHTML = formattedText;
+            bubble.innerHTML = text.replace(/\n/g, '<br>');
 
             div.appendChild(bubble);
             container.appendChild(div);
@@ -264,17 +203,22 @@
 
         function scrollToBottom() {
             const container = document.getElementById('chat-container');
-            setTimeout(() => { container.scrollTop = container.scrollHeight; }, 50);
+            setTimeout(() => {
+                container.scrollTop = container.scrollHeight;
+            }, 50);
         }
+
+        // --- Gallery Logic ---
 
         async function loadProjectImages() {
             const galleryContainer = document.getElementById('gallery-container');
             const galleryScroll = document.getElementById('gallery-scroll');
             
+            // Show container immediately
             galleryContainer.classList.remove('hidden');
             scrollToBottom();
 
-            if (galleryLoaded) return;
+            if (galleryLoaded) return; // Don't fetch again if already loaded
 
             try {
                 const res = await fetch(API_URL, {
@@ -288,19 +232,22 @@
                         <div class="gallery-card shrink-0" onclick="openLightbox('${url}')">
                             <img src="${url}" class="w-full h-full object-cover hover:scale-110 transition duration-500">
                             <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent">
-                                <span class="absolute bottom-2 right-3 text-white text-xs font-bold cyber-font">ZOOM</span>
+                                <span class="absolute bottom-2 right-3 text-white text-xs font-bold cyber-font">VIEW</span>
                             </div>
                         </div>
                     `).join('');
                     galleryLoaded = true;
                 }
-            } catch (e) { console.error("Image load failed"); }
+            } catch (e) {
+                console.error("Image load failed");
+            }
         }
 
         function toggleGallery() {
             document.getElementById('gallery-container').classList.toggle('hidden');
         }
 
+        // --- Lightbox ---
         function openLightbox(url) {
             document.getElementById('lightbox').classList.remove('hidden');
             document.getElementById('lightbox').classList.add('flex');
