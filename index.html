@@ -158,27 +158,34 @@
             chatBox.scrollTop = chatBox.scrollHeight;
         }
 
-        async function apiCall(msg) {
-            showLoading(true);
-            try {
-                const response = await fetch(SCRIPT_URL, {
-                    method: "POST",
-                    body: JSON.stringify({ action: "clientAssistant", message: msg, history: chatHistory, platformId: platformId })
-                });
-                const data = await response.json();
-                showLoading(false);
-                if(data.reply) {
-                    appendMessage("AIP", data.reply, 'ai');
-                    chatHistory += `\nUser: ${msg}\nAIP: ${data.reply}`;
-                    document.getElementById('quick-replies').style.opacity = "1";
-                }
-                if(data.media && data.media.length > 0) {
-                    currentImages = data.media;
-                    updateMediaCarousel();
-                }
-            } catch (err) { showLoading(false); }
+       async function apiCall(msg) {
+    showLoading(true);
+    try {
+        const response = await fetch(SCRIPT_URL, {
+            method: "POST",
+            body: JSON.stringify({ 
+                action: "clientAssistant", 
+                message: msg, 
+                history: chatHistory, // التأكد من إرسال التاريخ بالكامل
+                platformId: platformId 
+            })
+        });
+        const data = await response.json();
+        showLoading(false);
+        
+        if(data.reply) {
+            appendMessage("AIP", data.reply, 'ai');
+            // تحديث التاريخ بالرسالة الحالية ورد الـ AI
+            chatHistory += `\nUser: ${msg}\nAIP: ${data.reply}`; 
+            document.getElementById('quick-replies').style.opacity = "1";
         }
-
+        
+        if(data.media && data.media.length > 0) {
+            currentImages = data.media;
+            updateMediaCarousel();
+        }
+    } catch (err) { showLoading(false); }
+}
         function updateMediaCarousel() {
             const content = document.getElementById('media-content');
             content.innerHTML = currentImages.map((img, idx) => `
