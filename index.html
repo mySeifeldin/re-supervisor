@@ -110,11 +110,18 @@
             container.scrollLeft = 0;
         }
 
-        function appendMessage(sender, text, type) {
-            const chatBox = document.getElementById('chat-box');
-            chatBox.innerHTML += `<div class="p-4 rounded-2xl ${type === 'user' ? 'bg-blue-600 self-end ml-12' : 'ai-bubble self-start mr-12'} shadow-lg"><p class="text-sm">${text}</p></div>`;
-            chatBox.scrollTop = chatBox.scrollHeight;
-        }
+       function appendMessage(sender, text, type) {
+    const chatBox = document.getElementById('chat-box');
+    
+    // تنظيف النص من أي روابط صور قد تظهر بالخطأ في النص
+    const cleanText = text.replace(/https?:\/\/[^\s]+/g, "").trim();
+    
+    chatBox.innerHTML += `<div class="p-4 rounded-2xl ${type === 'user' ? 'bg-blue-600 self-end ml-12' : 'ai-bubble self-start mr-12'} shadow-lg border border-white/5 animate-slide">
+        <p class="text-sm leading-relaxed">${cleanText}</p></div>`;
+    
+    // Scroll to bottom
+    chatBox.scrollTo({ top: chatBox.scrollHeight, behavior: 'smooth' });
+}
 
         function startVoiceIntro() {
             const rec = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
