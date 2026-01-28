@@ -8,47 +8,42 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap');
-        :root { --aip-blue: #3b82f6; --dark-bg: #020617; }
-        body { background: var(--dark-bg); color: #f8fafc; font-family: 'Cairo', sans-serif; overflow: hidden; height: 100vh; display: flex; flex-direction: column; }
+        body { background: #020617; color: #f8fafc; font-family: 'Cairo', sans-serif; overflow: hidden; height: 100vh; display: flex; flex-direction: column; }
         .glass { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(25px); border: 1px solid rgba(255,255,255,0.1); }
-        #presentation-layer { position: fixed; inset: 0; z-index: 150; background: var(--dark-bg); transition: all 1s ease; }
+        #chat-box { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 1rem; scroll-behavior: smooth; }
+        .ai-bubble { background: rgba(30, 41, 59, 0.7); border-right: 4px solid #3b82f6; white-space: pre-line; }
+        .media-scroll { display: flex; overflow-x: auto; gap: 12px; padding: 5px; flex-shrink: 0; }
+        .img-card { flex: 0 0 200px; height: 130px; border-radius: 1rem; border: 2px solid #3b82f6; overflow: hidden; cursor: pointer; }
+        .wa-float { position: fixed; bottom: 30px; left: 20px; z-index: 200; display: none; }
+        #presentation-layer { position: fixed; inset: 0; z-index: 150; background: #020617; transition: all 1s ease; }
         .bg-slide { position: absolute; inset: 0; background-size: cover; background-position: center; opacity: 0; transition: opacity 1.5s ease; filter: brightness(0.3); }
         .bg-slide.active { opacity: 1; }
-        .ai-bubble { background: rgba(30, 41, 59, 0.7); border-right: 4px solid var(--aip-blue); white-space: pre-line; }
-        #chat-box { flex: 1; overflow-y: auto; scroll-behavior: smooth; display: flex; flex-direction: column; gap: 1rem; }
-        .media-scroll-area { display: flex; overflow-x: auto; gap: 12px; padding: 5px; scrollbar-width: none; flex-shrink: 0; }
-        .img-card { flex: 0 0 200px; height: 120px; border-radius: 1rem; border: 2px solid var(--aip-blue); overflow: hidden; }
-        .wa-float { position: fixed; bottom: 30px; left: 20px; z-index: 200; display: none; }
-        .mic-wave::before { content: ''; position: absolute; width: 100%; height: 100%; background: var(--aip-blue); border-radius: 50%; animation: pulse 2s infinite; opacity: 0.5; }
+        .mic-wave::before { content: ''; position: absolute; width: 100%; height: 100%; background: #3b82f6; border-radius: 50%; animation: pulse 2s infinite; opacity: 0.5; }
         @keyframes pulse { 0% { transform: scale(1); } 100% { transform: scale(1.8); opacity: 0; } }
     </style>
 </head>
-<body class="p-2 md:p-4">
+<body class="p-2">
 
     <div id="presentation-layer">
         <div id="bg-container"></div>
         <div class="relative z-[160] h-full flex flex-col items-center justify-center text-center p-6">
-            <h1 class="text-6xl font-black mb-4 text-blue-500 italic tracking-tighter">DOWN TOWN</h1>
+            <h1 class="text-6xl font-black mb-4 text-blue-500 italic">DOWN TOWN</h1>
             <p id="dynamic-text" class="text-2xl text-white font-bold mb-12 h-20 leading-relaxed"></p>
             <div class="mic-wave w-28 h-28 mx-auto cursor-pointer" onclick="startVoiceIntro()">
                 <div class="w-20 h-20 bg-blue-600 rounded-full flex items-center justify-center shadow-2xl"><i class="fas fa-microphone text-3xl"></i></div>
             </div>
-            <button onclick="skipToChat()" class="text-[10px] text-gray-500 underline mt-4 uppercase">Skip to Chat</button>
+            <button onclick="skipToChat()" class="text-gray-500 underline mt-4 text-xs">Skip</button>
         </div>
-    </div>
-
-    <div id="lightbox" onclick="this.style.display='none'" class="hidden fixed inset-0 z-[300] bg-black/90 items-center justify-center p-4">
-        <img id="lightbox-img" src="" class="max-h-full max-w-full rounded-lg">
     </div>
 
     <main id="main-ui" class="flex-1 flex flex-col glass rounded-[2.5rem] p-4 overflow-hidden hidden opacity-0 transition-opacity duration-1000">
         <header class="flex justify-between items-center mb-4 border-b border-white/10 pb-2 flex-shrink-0">
             <h1 class="text-xl font-black text-blue-500 italic">AIP <span class="text-white opacity-20">NEURAL</span></h1>
-            <div class="text-[9px] bg-blue-500/10 text-blue-400 px-3 py-1 rounded-full border border-blue-500/20">Official Hub</div>
+            <div class="text-[9px] bg-blue-500/10 text-blue-400 px-3 py-1 rounded-full border border-blue-500/20">Official AIP Hub</div>
         </header>
 
         <div id="chat-box"></div>
-        <div id="media-scroll-container" class="media-scroll-area"></div>
+        <div id="media-scroll-container" class="media-scroll"></div>
 
         <div id="quick-replies" class="flex gap-2 overflow-x-auto py-2 flex-shrink-0">
             <button onclick="sendQuickMsg('📍 الموقع الاستراتيجي')" class="bg-slate-900 border border-blue-500/20 px-4 py-2 rounded-full text-[10px] whitespace-nowrap">📍 الموقع</button>
@@ -68,17 +63,15 @@
 
     <script>
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxHQwlvc8o-6MwCH_UgrJVn9QPlQULQl-Yb7F8GdLB6i2RbZDikYScG54j7yjFfeP0LHA/exec";
+        const projectGallery = ["https://i.ibb.co/HLV2K3zf/Whats-App-Image-2026-01-25-at-3-21-50-PM.jpg", "https://i.ibb.co/gbz1PFR4/Whats-App-Image-2026-01-25-at-3-21-49-PM.jpg"];
         const introImages = ["https://i.ibb.co/HLV2K3zf/Whats-App-Image-2026-01-25-at-3-21-50-PM.jpg", "https://i.ibb.co/gbz1PFR4/Whats-App-Image-2026-01-25-at-3-21-49-PM.jpg"];
-        const introTexts = ["مرحباً بك في داون تاون", "مشروع أصيل ومجموعة التمامي", "المنصورة الجديدة - استثمارك المضمون"];
-        
-        let chatHistory = ""; // 🧠 سياق الحوار
-        const platformId = "AIP-PRO-" + Date.now();
+        const introTexts = ["مرحباً بك في داون تاون", "مشروع أصيل والتمامي", "استثمارك المضمون"];
+        let chatHistory = ""; const platformId = "AIP-" + Date.now();
 
         function initPresentation() {
             const container = document.getElementById('bg-container');
             container.innerHTML = introImages.map((src, i) => `<div class="bg-slide ${i===0?'active':''}" style="background-image:url('${src}')"></div>`).join('');
-            let idx = 0;
-            setInterval(() => {
+            let idx = 0; setInterval(() => {
                 idx = (idx + 1) % introTexts.length;
                 document.getElementById('dynamic-text').innerText = introTexts[idx];
                 document.querySelectorAll('.bg-slide').forEach((s, i) => s.classList.toggle('active', i === (idx % introImages.length)));
@@ -90,12 +83,10 @@
             document.getElementById('presentation-layer').style.display = 'none';
             document.getElementById('main-ui').classList.remove('hidden');
             setTimeout(() => document.getElementById('main-ui').classList.add('opacity-100'), 50);
-            appendMessage("كيمو", "أهلاً بك يا فندم! أنا كيمو من شركة أصيل والتمامي.\nاتشرف باسم حضرتك؟", "ai");
+            appendMessage("كيمو", "أهلاً بك يا فندم! نورت شركة أصيل والتمامي. اتشرف باسم حضرتك؟", "ai");
         }
 
         async function apiCall(msg) {
-            console.log("🚀 Sending to AI:", msg);
-            console.log("🧠 Current History:", chatHistory);
             showLoading(true);
             try {
                 const response = await fetch(SCRIPT_URL, {
@@ -103,19 +94,20 @@
                     body: JSON.stringify({ action: "clientAssistant", message: msg, history: chatHistory, platformId: platformId })
                 });
                 const data = await response.json();
-                console.log("✅ AI Response:", data);
                 showLoading(false);
-                
                 if(data.reply) {
                     appendMessage("كيمو", data.reply, "ai");
-                    chatHistory += `\nUser: ${msg}\nAIP: ${data.reply}`; // تحديث الهيستوري
+                    chatHistory += `\nUser: ${msg}\nAIP: ${data.reply}`;
                     if(data.showWhatsApp) document.getElementById('wa-referral').style.display = "flex";
                 }
-                if(data.media && data.media.length > 0) updateMedia(data.media);
-            } catch(e) { 
-                console.error("❌ API Error:", e);
-                showLoading(false); 
-            }
+                if(data.media && data.media.includes("SHOW_PROJECT_IMAGES")) updateMedia(projectGallery);
+            } catch(e) { showLoading(false); }
+        }
+
+        function updateMedia(images) {
+            const container = document.getElementById('media-scroll-container');
+            container.innerHTML = images.map(img => `<div class="img-card shadow-xl" onclick="window.open('${img}')"><img src="${img}" class="w-full h-full object-cover"></div>`).join('');
+            container.scrollLeft = 0;
         }
 
         function appendMessage(sender, text, type) {
@@ -124,18 +116,9 @@
             chatBox.scrollTop = chatBox.scrollHeight;
         }
 
-        function updateMedia(images) {
-            const container = document.getElementById('media-scroll-container');
-            container.innerHTML = images.map(img => `<div class="img-card shadow-xl" onclick="openFull('${img}')"><img src="${img.trim()}" class="w-full h-full object-cover"></div>`).join('');
-            container.scrollLeft = 0;
-        }
-
-        function openFull(src) { document.getElementById('lightbox-img').src = src; document.getElementById('lightbox').classList.remove('hidden'); document.getElementById('lightbox').classList.add('flex'); }
-
         function startVoiceIntro() {
             const rec = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-            rec.lang = 'ar-EG';
-            rec.onresult = (e) => { skipToChat(); setTimeout(() => { sendMessageAuto(e.results[0][0].transcript); }, 1000); };
+            rec.lang = 'ar-EG'; rec.onresult = (e) => { skipToChat(); setTimeout(() => { sendMessageAuto(e.results[0][0].transcript); }, 1000); };
             rec.start();
         }
 
@@ -149,11 +132,8 @@
         }
 
         function sendMessage() {
-            const input = document.getElementById('user-input');
-            if(!input.value) return;
-            appendMessage("أنا", input.value, "user");
-            apiCall(input.value);
-            input.value = "";
+            const input = document.getElementById('user-input'); if(!input.value) return;
+            appendMessage("أنا", input.value, "user"); apiCall(input.value); input.value = "";
         }
 
         function sendMessageAuto(text) { appendMessage("أنا", text, "user"); apiCall(text); }
