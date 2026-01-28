@@ -12,171 +12,127 @@
         body { background: var(--dark-bg); color: #f8fafc; font-family: 'Cairo', sans-serif; overflow: hidden; height: 100vh; }
         .glass { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(25px); border: 1px solid rgba(255,255,255,0.1); }
         
-        /* Full Dynamic Background Presentation */
         #presentation-layer { position: fixed; inset: 0; z-index: 150; background: var(--dark-bg); transition: all 1s ease-in-out; }
-        .bg-slide { position: absolute; inset: 0; background-size: cover; background-position: center; opacity: 0; transition: opacity 1.5s ease; filter: brightness(0.4); }
+        .bg-slide { position: absolute; inset: 0; background-size: cover; background-position: center; opacity: 0; transition: opacity 1.5s ease; filter: brightness(0.3); }
         .bg-slide.active { opacity: 1; }
         
-        .present-content { position: relative; z-index: 160; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; p-6; }
-        .present-text { transform: translateY(30px); opacity: 0; transition: all 0.8s ease; }
-        .present-text.active { transform: translateY(0); opacity: 1; }
-
-        /* Mic Pulsing Effect */
+        .present-content { position: relative; z-index: 160; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+        
+        /* Mic/Recording Pulse */
         .mic-wave { position: relative; display: flex; align-items: center; justify-content: center; }
         .mic-wave::before { content: ''; position: absolute; width: 100%; height: 100%; background: var(--aip-blue); border-radius: 50%; animation: pulse-wave 2s infinite; opacity: 0.5; z-index: -1; }
         @keyframes pulse-wave { 0% { transform: scale(1); opacity: 0.6; } 100% { transform: scale(2); opacity: 0; } }
         .recording::before { background: #ef4444; }
 
-        /* Chat Styles */
         .ai-bubble { background: rgba(30, 41, 59, 0.7); border-right: 4px solid var(--aip-blue); white-space: pre-line; }
-        .wa-float { position: fixed; bottom: 100px; left: 20px; z-index: 200; display: none; }
-        .img-card { flex: 0 0 auto; width: 220px; height: 140px; border-radius: 1.2rem; overflow: hidden; border: 2px solid rgba(59, 130, 246, 0.3); transition: transform 0.3s; }
+        
+        /* Horizontal Media Scroll */
+        .media-scroll { display: flex; overflow-x: auto; gap: 12px; padding: 10px 5px; scrollbar-width: none; }
+        .media-scroll::-webkit-scrollbar { display: none; }
+        .img-card { flex: 0 0 220px; height: 140px; border-radius: 1.2rem; overflow: hidden; border: 2px solid rgba(59, 130, 246, 0.5); cursor: pointer; transition: transform 0.3s; }
         .img-card:hover { transform: scale(1.05); }
 
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-thumb { background: var(--aip-blue); border-radius: 10px; }
+        /* Lightbox */
+        #lightbox { display: none; position: fixed; inset: 0; z-index: 300; background: rgba(0,0,0,0.9); align-items: center; justify-content: center; p-4; }
+        #lightbox img { max-width: 95%; max-height: 90%; border-radius: 1rem; box-shadow: 0 0 40px rgba(59,130,246,0.3); }
+
+        .wa-float { position: fixed; bottom: 100px; left: 20px; z-index: 200; display: none; }
     </style>
 </head>
 <body class="flex flex-col h-screen">
 
     <div id="presentation-layer">
         <div id="bg-container"></div>
-        <div class="present-content">
-            <div id="text-wrapper" class="present-text">
-                <h1 class="text-5xl font-black mb-4 text-blue-500 italic tracking-tighter">DOWN TOWN</h1>
-                <p id="dynamic-text" class="text-2xl text-white font-bold mb-10 leading-relaxed"></p>
-                
-                <div class="mic-wave w-28 h-28 mx-auto cursor-pointer" onclick="startKimoInteraction()" id="intro-mic-btn">
-                    <div class="w-20 h-20 bg-blue-600 rounded-full flex items-center justify-center shadow-[0_0_30px_rgba(59,130,246,0.5)]">
-                        <i class="fas fa-microphone text-3xl text-white"></i>
-                    </div>
-                </div>
-                <p class="mt-6 text-slate-400 text-sm animate-bounce">اضغط وتحدث لبدء التجربة</p>
-            </div>
+        <div class="present-content p-6">
+            <h1 class="text-5xl font-black mb-4 text-blue-500 italic tracking-tighter">DOWN TOWN</h1>
+            <p id="dynamic-text" class="text-2xl text-white font-bold mb-12 h-16 leading-relaxed"></p>
+            <button onclick="finalizeIntro()" class="px-12 py-4 bg-blue-600 rounded-full font-bold text-xl shadow-[0_0_30px_rgba(59,130,246,0.4)] hover:scale-110 transition-transform">بدء التجربة</button>
         </div>
+    </div>
+
+    <div id="lightbox" onclick="this.style.display='none'">
+        <img id="lightbox-img" src="">
     </div>
 
     <main id="main-ui" class="flex-1 flex flex-col p-4 opacity-0 transition-opacity duration-1000 hidden">
         <header class="flex justify-between items-center mb-4">
-            <div>
-                <h1 class="text-xl font-black text-blue-500 italic">AIP <span class="text-white opacity-20">NEURAL</span></h1>
-                <p class="text-[8px] uppercase tracking-widest text-slate-500 font-bold">Al-Temamy Official Intelligence</p>
-            </div>
+            <h1 class="text-xl font-black text-blue-500 italic">AIP <span class="text-white opacity-20">NEURAL</span></h1>
             <div class="text-right">
-                <span class="text-[10px] bg-blue-500/10 text-blue-400 px-3 py-1 rounded-full border border-blue-500/20 animate-pulse">Neural Link Active</span>
+                <span class="text-[10px] bg-blue-500/10 text-blue-400 px-3 py-1 rounded-full border border-blue-500/20">Official Partner: Al-Temamy</span>
             </div>
         </header>
 
         <div class="flex-1 glass rounded-[2.5rem] p-4 mb-4 flex flex-col overflow-hidden">
             <div id="chat-box" class="flex-1 overflow-y-auto space-y-4 mb-4 pr-1 scroll-smooth"></div>
             
+            <div id="media-content" class="media-scroll"></div>
+
             <div id="quick-replies" class="flex gap-2 overflow-x-auto pb-2">
-                <button onclick="sendQuickMsg('📍 الموقع الاستراتيجي')" class="whitespace-nowrap bg-slate-900/50 border border-blue-500/20 px-4 py-2 rounded-full text-xs">📍 الموقع</button>
-                <button onclick="sendQuickMsg('🏗️ سابقة أعمال الشركة')" class="whitespace-nowrap bg-slate-900/50 border border-blue-500/20 px-4 py-2 rounded-full text-xs">🏗️ سابقة الأعمال</button>
-                <button onclick="sendQuickMsg('إحجز الآن')" class="whitespace-nowrap bg-blue-600 px-6 py-2 rounded-full text-xs font-bold shadow-lg">💎 إحجز الآن</button>
+                <button onclick="sendQuickMsg('📍 الموقع الاستراتيجي')" class="whitespace-nowrap bg-slate-900 border border-blue-500/20 px-4 py-2 rounded-full text-[10px]">📍 الموقع</button>
+                <button onclick="sendQuickMsg('🏗️ سابقة الأعمال')" class="whitespace-nowrap bg-slate-900 border border-blue-500/20 px-4 py-2 rounded-full text-[10px]">🏗️ سابقة الأعمال</button>
+                <button onclick="sendQuickMsg('أريد حجز وحدة (إحجز الآن)')" class="whitespace-nowrap bg-blue-600 px-6 py-2 rounded-full text-[10px] font-bold">💎 إحجز الآن</button>
             </div>
 
-            <div class="flex gap-2 items-center bg-slate-950/80 p-2 rounded-2xl border border-slate-800">
+            <div class="flex gap-2 items-center bg-slate-950 p-2 rounded-2xl border border-slate-800">
                 <div class="mic-wave w-10 h-10" id="chat-mic-container">
-                    <button onclick="startChatVoice()" class="w-8 h-8 bg-blue-600/20 rounded-full flex items-center justify-center text-blue-400">
-                        <i class="fas fa-microphone"></i>
-                    </button>
+                    <button onclick="startChatVoice()" class="w-8 h-8 bg-blue-600/20 rounded-full flex items-center justify-center text-blue-400"><i class="fas fa-microphone"></i></button>
                 </div>
                 <input type="text" id="user-input" class="flex-1 bg-transparent px-2 text-sm outline-none" placeholder="تحدث مع كيمو...">
-                <button onclick="sendMessage()" class="bg-blue-600 w-10 h-10 rounded-xl flex items-center justify-center shadow-lg"><i class="fas fa-paper-plane"></i></button>
+                <button onclick="sendMessage()" class="bg-blue-600 w-10 h-10 rounded-xl flex items-center justify-center"><i class="fas fa-paper-plane"></i></button>
             </div>
         </div>
-
-        <div id="media-content" class="flex gap-3 overflow-x-auto py-2 px-1"></div>
     </main>
 
-    <a id="wa-referral" href="https://wa.me/201000000000" target="_blank" class="wa-float w-16 h-16 bg-green-600 rounded-full flex items-center justify-center shadow-[0_0_30px_rgba(34,197,94,0.4)] animate-bounce">
+    <a id="wa-referral" href="https://wa.me/201000000000" target="_blank" class="wa-float w-16 h-16 bg-green-600 rounded-full flex items-center justify-center shadow-2xl animate-bounce">
         <i class="fab fa-whatsapp text-3xl text-white"></i>
     </a>
 
     <script>
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxHQwlvc8o-6MwCH_UgrJVn9QPlQULQl-Yb7F8GdLB6i2RbZDikYScG54j7yjFfeP0LHA/exec";
+        
+        // استخدام روابط الصور الحقيقية التي ذكرتها
         const introImages = [
-            "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=2070",
-            "https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=2069",
-            "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?q=80&w=2070"
+            "https://i.ibb.co/HLV2K3zf/Whats-App-Image-2026-01-25-at-3-21-50-PM.jpg",
+            "https://i.ibb.co/gbz1PFR4/Whats-App-Image-2026-01-25-at-3-21-49-PM.jpg",
+            "https://i.ibb.co/Hf0bZKnv/Whats-App-Image-2026-01-25-at-3-21-48-PM.jpg"
         ];
+        
         const introTexts = [
-            "مرحباً بك في داون تاون المنصورة الجديدة",
-            "استثمارك الأول مع شركة التمامي وأصيل",
-            "موقع استراتيجي أمام منطقة البنوك والجامعات",
-            "أنا كيمو.. مستشارك الذكي.. اتشرف باسم حضرتك؟"
+            "أهلاً بك في داون تاون المنصورة الجديدة",
+            "بناء المستقبل مع مجموعة شركات التمامي وأصيل",
+            "استثمر في أرقى المواقع أمام منطقة البنوك والجامعات",
+            "مع الاستشاري محمد طلعت ومنطقة ترفيه الحكير"
         ];
 
-        let recognition;
         let chatHistory = "";
 
-        // Initialize Background Slides
         function initPresentation() {
-            const bgContainer = document.getElementById('bg-container');
-            bgContainer.innerHTML = introImages.map((src, i) => `<div class="bg-slide ${i===0?'active':''}" style="background-image:url('${src}')"></div>`).join('');
+            const container = document.getElementById('bg-container');
+            container.innerHTML = introImages.map((src, i) => `<div class="bg-slide ${i===0?'active':''}" style="background-image:url('${src}')"></div>`).join('');
             
-            let currentIdx = 0;
+            let idx = 0;
             const textElement = document.getElementById('dynamic-text');
-            document.getElementById('text-wrapper').classList.add('active');
-
             setInterval(() => {
-                currentIdx = (currentIdx + 1) % introTexts.length;
+                idx = (idx + 1) % introTexts.length;
                 textElement.style.opacity = 0;
                 setTimeout(() => {
-                    textElement.innerText = introTexts[currentIdx];
+                    textElement.innerText = introTexts[idx];
                     textElement.style.opacity = 1;
-                    document.querySelectorAll('.bg-slide').forEach((s, i) => s.classList.toggle('active', i === (currentIdx % introImages.length)));
+                    document.querySelectorAll('.bg-slide').forEach((s, i) => s.classList.toggle('active', i === (idx % introImages.length)));
                 }, 500);
             }, 4000);
             textElement.innerText = introTexts[0];
         }
 
-        // Voice Recognition Engine
-        if ('webkitSpeechRecognition' in window) {
-            recognition = new webkitSpeechRecognition();
-            recognition.lang = 'ar-EG';
-            recognition.onstart = () => {
-                document.getElementById('intro-mic-btn')?.classList.add('recording');
-                document.getElementById('chat-mic-container')?.classList.add('recording');
-            };
-            recognition.onresult = (e) => {
-                const text = e.results[0][0].transcript;
-                if(document.getElementById('presentation-layer').style.display !== 'none') finalizeIntro(text);
-                else { document.getElementById('user-input').value = text; sendMessage(); }
-            };
-            recognition.onend = () => {
-                document.getElementById('intro-mic-btn')?.classList.remove('recording');
-                document.getElementById('chat-mic-container')?.classList.remove('recording');
-            };
-        }
-
-        function startKimoInteraction() { recognition && recognition.start(); }
-        function startChatVoice() { recognition && recognition.start(); }
-
-        function finalizeIntro(name) {
+        function finalizeIntro() {
             document.getElementById('presentation-layer').style.transform = "scale(1.2)";
             document.getElementById('presentation-layer').style.opacity = "0";
             setTimeout(() => {
                 document.getElementById('presentation-layer').style.display = 'none';
                 document.getElementById('main-ui').classList.remove('hidden');
                 setTimeout(() => document.getElementById('main-ui').classList.add('opacity-100'), 50);
-                sendQuickMsg(name);
+                appendMessage("كيمو", "أهلاً بك يا فندم! نورت شركة أصيل والتمامي.\nأنا كيمو مستشارك العقاري لـ Down Town.\nاتشرف باسم حضرتك؟", "ai");
             }, 1000);
-        }
-
-        async function sendMessage() {
-            const input = document.getElementById('user-input');
-            const msg = input.value;
-            if(!msg) return;
-            appendMessage("أنا", msg, 'user');
-            input.value = "";
-            await apiCall(msg);
-        }
-
-        async function sendQuickMsg(text) {
-            appendMessage("أنا", text, 'user');
-            await apiCall(text);
         }
 
         async function apiCall(msg) {
@@ -190,10 +146,12 @@
                 showLoading(false);
                 
                 if(data.reply) {
-                    const formatted = data.reply.replace(/\./g, ".\n");
+                    const formatted = data.reply.replace(/\. /g, ".\n");
                     appendMessage("كيمو", formatted, 'ai');
                     chatHistory += `\nUser: ${msg}\nAIP: ${data.reply}`;
-                    if(data.redirectToWA) document.getElementById('wa-referral').style.display = "flex";
+                    
+                    // إظهار الواتساب فقط إذا وجد الرقم
+                    if(data.showWhatsApp) document.getElementById('wa-referral').style.display = "flex";
                 }
                 if(data.media) updateMedia(data.media);
             } catch (err) { showLoading(false); }
@@ -201,7 +159,7 @@
 
         function appendMessage(sender, text, type) {
             const chatBox = document.getElementById('chat-box');
-            chatBox.innerHTML += `<div class="p-4 rounded-3xl ${type === 'user' ? 'bg-blue-600 ml-8' : 'ai-bubble mr-8'} shadow-lg border border-white/5">
+            chatBox.innerHTML += `<div class="p-4 rounded-3xl ${type === 'user' ? 'bg-blue-600 ml-8' : 'ai-bubble mr-8'} shadow-lg border border-white/5 animate-slide">
                 <p class="text-sm leading-relaxed">${text}</p></div>`;
             chatBox.scrollTop = chatBox.scrollHeight;
         }
@@ -209,16 +167,39 @@
         function updateMedia(images) {
             const content = document.getElementById('media-content');
             content.innerHTML = images.map(img => `
-                <div class="img-card shadow-xl">
+                <div class="img-card" onclick="zoomImg('${img}')">
                     <img src="${img}" class="w-full h-full object-cover">
                 </div>`).join('');
         }
 
+        function zoomImg(src) {
+            document.getElementById('lightbox-img').src = src;
+            document.getElementById('lightbox').style.display = 'flex';
+        }
+
+        function startChatVoice() {
+            const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+            recognition.lang = 'ar-EG';
+            recognition.onstart = () => document.getElementById('chat-mic-container').classList.add('recording');
+            recognition.onresult = (e) => { document.getElementById('user-input').value = e.results[0][0].transcript; sendMessage(); };
+            recognition.onend = () => document.getElementById('chat-mic-container').classList.remove('recording');
+            recognition.start();
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('user-input');
+            if(!input.value) return;
+            appendMessage("أنا", input.value, "user");
+            apiCall(input.value);
+            input.value = "";
+        }
+
+        function sendQuickMsg(t) { appendMessage("أنا", t, "user"); apiCall(t); }
+
         function showLoading(show) {
-            const chatBox = document.getElementById('chat-box');
-            if(show) chatBox.innerHTML += `<div id="loader" class="flex gap-1 p-2"><div class="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div><div class="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style="animation-delay:0.2s"></div></div>`;
-            else { const l = document.getElementById('loader'); l && l.remove(); }
-            chatBox.scrollTop = chatBox.scrollHeight;
+            const l = document.getElementById('loader');
+            if(show && !l) document.getElementById('chat-box').innerHTML += `<div id="loader" class="text-xs text-blue-400 p-2">كيمو يحلل طلبك...</div>`;
+            else if(!show && l) l.remove();
         }
 
         window.onload = initPresentation;
