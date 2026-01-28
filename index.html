@@ -13,7 +13,6 @@
         body { background-color: var(--deep-space); color: #e2e8f0; font-family: 'Cairo', sans-serif; overflow: hidden; height: 100vh; position: relative; }
         .cyber-font { font-family: 'Orbitron', sans-serif; letter-spacing: 2px; }
         
-        /* BG & UI Styles (نفس الستايلات السابقة) */
         #bg-slideshow { position: fixed; inset: 0; z-index: -1; pointer-events: none; }
         .bg-slide { position: absolute; inset: 0; background-size: cover; background-position: center; opacity: 0; transition: opacity 2s, transform 10s; transform: scale(1); }
         .bg-slide.active { opacity: 0.4; transform: scale(1.1); }
@@ -24,7 +23,6 @@
         .msg-ai { background: rgba(0, 243, 255, 0.08); border-right: 3px solid var(--neon-blue); border-radius: 12px 0 12px 12px; backdrop-filter: blur(5px); }
         .msg-user { background: linear-gradient(135deg, #2563eb, #1d4ed8); border-radius: 12px 12px 0 12px; }
         
-        /* WhatsApp Button Style */
         #whatsapp-btn {
             background: linear-gradient(45deg, #25D366, #128C7E);
             box-shadow: 0 0 20px rgba(37, 211, 102, 0.4);
@@ -34,9 +32,6 @@
 
         .quick-chip { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(0, 243, 255, 0.3); color: var(--neon-blue); padding: 8px 16px; border-radius: 99px; font-size: 0.8rem; cursor: pointer; transition: all 0.3s; white-space: nowrap; display: flex; items-center; gap: 6px; }
         .quick-chip:hover { background: var(--neon-blue); color: #000; box-shadow: 0 0 20px var(--neon-blue); }
-
-        .gallery-card { min-width: 240px; height: 150px; border-radius: 16px; overflow: hidden; border: 1px solid rgba(0, 243, 255, 0.2); transition: 0.3s; cursor: pointer; }
-        .gallery-card:hover { transform: scale(1.05); border-color: var(--neon-blue); }
 
         .mic-active { color: #ef4444 !important; border-color: #ef4444 !important; animation: pulse-red 1.5s infinite; background: rgba(239, 68, 68, 0.1) !important; }
         @keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
@@ -116,10 +111,11 @@
     </main>
 
     <script>
-        const API_URL = "https://script.google.com/macros/s/AKfycbz3FhsrTx_ltEixyKaA_rdLSGPyUMa-r3KYotKm8PhYETA6KySiHnl1m6uQUpIciB8npw/exec";
+        // 🔴🔴 استبدل الرابط هنا بعد الـ DEPLOYMENT الجديد 🔴🔴
+        const API_URL = "https://script.google.com/macros/s/AKfycbzXBntgJwzYruSQeJFX_mScndkPrlDCqULJPxTPludXGUCgiuc5Y60Q4_oLyJ3XSKVjHA/exec";
         
-        // 🔴 ضع رقم الواتساب الخاص بالمبيعات هنا (بدون +)
-        const SALES_WHATSAPP_NUMBER = "201000000000"; 
+        // 🔴 رقم واتساب المبيعات (غيره برقمك الحقيقي)
+        const SALES_WHATSAPP_NUMBER = "20109074298"; 
 
         let chatHistory = "";
         let platformId = "WEB-" + Date.now();
@@ -130,7 +126,6 @@
             initChat();
             setupVoice();
             initBackgroundSystem();
-            // تحديث رابط الواتساب
             document.getElementById('whatsapp-btn').href = `https://wa.me/${SALES_WHATSAPP_NUMBER}`;
         };
 
@@ -221,12 +216,12 @@
 
                 if (data.showGallery === true) openGalleryDrawer();
 
-                // 🚀 إظهار شاشة الواتساب النهائية فقط عند استلام الأمر
+                // 🚀 إظهار شاشة الواتساب عند استلام الأمر من الـ AI
                 if (data.showWhatsApp === true) {
                     setTimeout(() => {
                         document.getElementById('whatsapp-container').classList.remove('hidden');
                         document.getElementById('whatsapp-container').classList.add('flex');
-                    }, 2000); // تأخير بسيط عشان يقرأ رسالة الختام الأول
+                    }, 2000);
                 }
 
             } catch (err) {
