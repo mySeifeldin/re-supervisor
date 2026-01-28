@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>AIP | Future Sales</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
@@ -10,7 +10,10 @@
     
     <style>
         :root { --neon-blue: #00f3ff; --deep-space: #050b14; --whatsapp-green: #25D366; }
-        body { background-color: var(--deep-space); color: #e2e8f0; font-family: 'Cairo', sans-serif; overflow: hidden; height: 100vh; position: relative; }
+        
+        /* 🔧 التعديل هنا: 100dvh بدل 100vh عشان الموبايل */
+        body { background-color: var(--deep-space); color: #e2e8f0; font-family: 'Cairo', sans-serif; overflow: hidden; height: 100dvh; position: relative; }
+        
         .cyber-font { font-family: 'Orbitron', sans-serif; letter-spacing: 2px; }
         
         #bg-slideshow { position: fixed; inset: 0; z-index: -1; pointer-events: none; }
@@ -44,7 +47,7 @@
         #lightbox { backdrop-filter: blur(20px); background: rgba(5, 11, 20, 0.95); }
     </style>
 </head>
-<body class="flex flex-col h-screen p-0 md:p-4">
+<body class="flex flex-col h-[100dvh] p-0 md:p-4">
 
     <div id="bg-slideshow"><div class="overlay"></div></div>
 
@@ -56,7 +59,7 @@
     </div>
 
     <main class="flex-1 flex flex-col max-w-5xl mx-auto w-full h-full md:rounded-3xl border border-slate-700/50 bg-[#0a1120]/60 backdrop-blur-md shadow-2xl overflow-hidden relative">
-        <header class="p-4 border-b border-slate-700/50 flex justify-between items-center bg-black/20">
+        <header class="p-4 border-b border-slate-700/50 flex justify-between items-center bg-black/20 shrink-0">
             <div class="flex items-center gap-3">
                 <div class="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center border border-blue-500/50 shadow-[0_0_15px_rgba(59,130,246,0.5)]">
                     <i class="fas fa-robot text-blue-400"></i>
@@ -77,8 +80,8 @@
             <div class="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center mb-4 shadow-[0_0_30px_#25D366]">
                 <i class="fas fa-check text-4xl text-white"></i>
             </div>
-            <h2 class="text-2xl font-bold text-white mb-2">تم تسجيل بياناتك بنجاح!</h2>
-            <p class="text-slate-300 mb-6">سيقوم فريق المبيعات بالتواصل معك. يمكنك أيضاً مراسلتنا الآن.</p>
+            <h2 class="text-2xl font-bold text-white mb-2">تم تسجيل رقمك بنجاح!</h2>
+            <p class="text-slate-300 mb-6">سيقوم فريق المبيعات بالتواصل معك فوراً.</p>
             <a href="https://wa.me/201000000000" target="_blank" id="whatsapp-btn" class="flex items-center gap-2 px-8 py-4 rounded-full text-white font-bold text-lg hover:scale-105 transition">
                 <i class="fab fa-whatsapp text-2xl"></i> تواصل عبر واتساب
             </a>
@@ -93,7 +96,7 @@
             <div id="gallery-scroll" class="flex gap-4 overflow-x-auto px-4 pb-4 scroll-smooth"></div>
         </div>
 
-        <div class="border-t border-slate-700/50 bg-[#0a1120]/80">
+        <div class="border-t border-slate-700/50 bg-[#0a1120]/80 shrink-0 pb-4 md:pb-0">
             <div class="flex gap-2 px-4 pt-3 overflow-x-auto no-scrollbar pb-1">
                 <button onclick="sendQuickMsg('📍 ممكن الموقع بالتفصيل؟')" class="quick-chip"><i class="fas fa-map-marker-alt"></i> الموقع</button>
                 <button onclick="sendQuickMsg('💰 تفاصيل نظم الدفع والسداد؟')" class="quick-chip"><i class="fas fa-wallet"></i> نظم الدفع</button>
@@ -111,10 +114,10 @@
     </main>
 
     <script>
-        // 🔴🔴 استبدل الرابط هنا بعد الـ DEPLOYMENT الجديد 🔴🔴
+        // 🔴🔴 رابط السكريبت الجديد (من Apps Script) 🔴🔴
         const API_URL = "https://script.google.com/macros/s/AKfycbz3lKqdsNX1cn09oA1cDVAPxLB8YLQpLB4Ue2N0lJCBD3AKrPp0PeSrabg2SIgkK0vqJg/exec";
         
-        // 🔴 رقم واتساب المبيعات (غيره برقمك الحقيقي)
+        // 🔴 رقم الواتساب
         const SALES_WHATSAPP_NUMBER = "201014017528"; 
 
         let chatHistory = "";
@@ -216,7 +219,6 @@
 
                 if (data.showGallery === true) openGalleryDrawer();
 
-                // 🚀 إظهار شاشة الواتساب عند استلام الأمر من الـ AI
                 if (data.showWhatsApp === true) {
                     setTimeout(() => {
                         document.getElementById('whatsapp-container').classList.remove('hidden');
