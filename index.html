@@ -3,98 +3,114 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Down Town | Command Center</title>
+    <title>AIP | المستشار الذكي لمشروعات التمامي</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&family=Cairo:wght@300;700&display=swap');
-        :root { --neon-blue: #3b82f6; --dark-bg: #020617; }
+        :root { --aip-blue: #3b82f6; --temamy-gold: #c5a059; --dark-bg: #020617; }
         body { background: var(--dark-bg); color: #f8fafc; font-family: 'Cairo', sans-serif; overflow: hidden; height: 100vh; }
         .cyber-font { font-family: 'Orbitron', sans-serif; }
 
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.1); }
-        ::-webkit-scrollbar-thumb { background: var(--neon-blue); border-radius: 10px; }
+        /* Scrollbar شيك */
+        ::-webkit-scrollbar { height: 6px; width: 4px; }
+        ::-webkit-scrollbar-thumb { background: var(--aip-blue); border-radius: 10px; }
 
         /* Lightbox */
         #lightbox {
             display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 200;
             flex-direction: column; align-items: center; justify-content: center; backdrop-filter: blur(15px);
         }
-        .lightbox-img { max-height: 70vh; max-width: 90vw; object-fit: contain; border-radius: 1rem; box-shadow: 0 0 50px rgba(59, 130, 246, 0.5); }
-        
-        /* Image Grid & Hover */
-        .img-card { cursor: pointer; transition: all 0.4s ease; border-radius: 1.5rem; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); position: relative; }
-        .img-card:hover { transform: translateY(-5px); border-color: var(--neon-blue); box-shadow: 0 10px 30px rgba(59, 130, 246, 0.4); }
-        .img-card::after { 
-            content: '🔍 عرض ملء الشاشة'; position: absolute; inset: 0; background: rgba(59, 130, 246, 0.4); 
-            display: flex; align-items: center; justify-content: center; opacity: 0; transition: 0.3s; font-size: 0.8rem; font-weight: bold;
-        }
-        .img-card:hover::after { opacity: 1; }
+        .lightbox-img { max-height: 80vh; max-width: 90vw; object-fit: contain; border-radius: 1rem; }
 
-        .mic-active { animation: pulse-red 1.5s infinite; color: #ef4444 !important; }
-        @keyframes pulse-red { 0% { transform: scale(1); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
-        
+        /* الهالة الضوئية للميكروفون */
+        .mic-wave {
+            position: relative; display: flex; align-items: center; justify-content: center;
+        }
+        .mic-wave::before {
+            content: ''; position: absolute; width: 100%; height: 100%;
+            background: var(--aip-blue); border-radius: 50%;
+            animation: pulse-wave 2s infinite; opacity: 0.5; z-index: -1;
+        }
+        @keyframes pulse-wave {
+            0% { transform: scale(1); opacity: 0.5; }
+            100% { transform: scale(1.8); opacity: 0; }
+        }
+
+        /* تنسيق الصور الأفقي */
+        .img-card { 
+            flex: 0 0 auto; width: 220px; height: 140px; cursor: pointer; 
+            transition: all 0.4s ease; border-radius: 1.2rem; overflow: hidden;
+            border: 2px solid rgba(255,255,255,0.05);
+        }
+        .img-card:hover { transform: translateY(-10px) scale(1.05); border-color: var(--aip-blue); }
+
         .glass { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(25px); border: 1px solid rgba(255,255,255,0.1); }
+        .ai-bubble { background: rgba(30, 41, 59, 0.7); border-right: 4px solid var(--aip-blue); }
     </style>
 </head>
-<body class="flex flex-col">
+<body class="flex flex-col h-screen">
 
     <div id="lightbox">
-        <button onclick="closeLightbox()" class="absolute top-8 right-8 text-3xl hover:text-red-500"><i class="fas fa-times"></i></button>
-        <div class="flex items-center gap-4 w-full justify-center">
-            <button onclick="prevImg()" class="text-3xl hover:text-blue-400 p-4"><i class="fas fa-chevron-left"></i></button>
+        <button onclick="closeLightbox()" class="absolute top-8 right-8 text-3xl"><i class="fas fa-times"></i></button>
+        <div class="flex items-center gap-6">
+            <button onclick="prevImg()" class="text-3xl"><i class="fas fa-chevron-left"></i></button>
             <img id="lightbox-main" class="lightbox-img" src="">
-            <button onclick="nextImg()" class="text-3xl hover:text-blue-400 p-4"><i class="fas fa-chevron-right"></i></button>
+            <button onclick="nextImg()" class="text-3xl"><i class="fas fa-chevron-right"></i></button>
         </div>
-        <div class="flex gap-2 mt-6 overflow-x-auto p-2 max-w-[90vw]" id="lightbox-thumbs"></div>
     </div>
 
-    <div id="start-overlay" class="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-slate-950 transition-all duration-700">
-        <div class="w-28 h-28 bg-blue-600 rounded-full flex items-center justify-center cursor-pointer hover:scale-110 shadow-2xl" onclick="startKimoInteraction()">
-            <i class="fas fa-microphone text-3xl text-white"></i>
+    <div id="start-overlay" class="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-[#020617]">
+        <div class="mic-wave w-32 h-32 mb-8 cursor-pointer" onclick="startKimoInteraction()">
+            <div class="w-24 h-24 bg-blue-600 rounded-full flex items-center justify-center shadow-2xl">
+                <i class="fas fa-microphone text-4xl text-white"></i>
+            </div>
         </div>
-        <h2 id="ai-status" class="cyber-font text-xl font-bold text-blue-400 mt-6 animate-pulse uppercase">Waiting for input...</h2>
-        <p class="text-slate-400 mt-2">"منور يا فندم.. اتشرف باسم حضرتك؟"</p>
+        <h2 class="cyber-font text-2xl font-bold text-blue-400 mb-2">AIP INTELLIGENCE</h2>
+        <p class="text-slate-400">اتشرف باسم حضرتك لبدء عرض مشروع Down Town؟</p>
     </div>
 
-    <div id="main-ui" class="max-w-7xl mx-auto p-4 md:p-6 h-screen flex flex-col hidden opacity-0 transition-opacity duration-500 overflow-hidden">
-        <header class="flex justify-between items-center mb-4">
-            <h1 class="cyber-font text-2xl font-black text-blue-500 tracking-tighter">KIMO <span class="text-white opacity-20">COMMAND</span></h1>
-            <div class="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-blue-400">
-                <span class="w-2 h-2 bg-blue-500 rounded-full animate-ping"></span> Live Link
+    <main id="main-ui" class="flex-1 flex flex-col p-4 md:p-6 hidden opacity-0 transition-opacity duration-1000 overflow-hidden">
+        
+        <header class="flex justify-between items-center mb-4 px-2">
+            <div class="flex flex-col">
+                <h1 class="cyber-font text-2xl font-black text-blue-500">AIP <span class="text-white opacity-20">AI</span></h1>
+                <span class="text-[10px] text-slate-500 tracking-widest uppercase">Official Partner of Al-Temamy</span>
+            </div>
+            <div class="text-right">
+                <h2 class="text-sm font-bold text-slate-300">Down Town Mansoura</h2>
+                <span class="text-[9px] bg-blue-500/10 text-blue-400 px-2 py-0.5 rounded border border-blue-500/20">Smart Assistant</span>
             </div>
         </header>
 
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 flex-1 overflow-hidden">
-            <div class="lg:col-span-4 h-full hidden lg:flex flex-col gap-4 overflow-y-auto pb-20 pr-1" id="media-content">
-                </div>
+        <div class="flex-1 glass rounded-[2.5rem] p-6 mb-6 flex flex-col overflow-hidden relative">
+            <div id="chat-box" class="flex-1 overflow-y-auto space-y-4 mb-4 scroll-smooth pr-2"></div>
+            
+            <div id="quick-replies" class="flex flex-wrap gap-2 mb-4 opacity-0 transition-opacity">
+                <button onclick="sendQuickMsg('📍 الموقع الإستراتيجي')" class="bg-blue-900/30 border border-blue-500/20 px-4 py-2 rounded-full text-xs">📍 الموقع</button>
+                <button onclick="sendQuickMsg('🏗️ سابقة الأعمال')" class="bg-blue-900/30 border border-blue-500/20 px-4 py-2 rounded-full text-xs">🏗️ سابقة الأعمال</button>
+            </div>
 
-            <div class="lg:col-span-8 h-full flex flex-col overflow-hidden">
-                <div class="glass rounded-[2rem] p-4 flex-1 flex flex-col overflow-hidden border border-blue-500/10">
-                    <div id="chat-box" class="flex-1 overflow-y-auto space-y-4 mb-4 pr-2 scroll-smooth">
-                        </div>
-                    
-                    <div id="quick-replies" class="flex flex-wrap gap-2 mb-4">
-                        <button onclick="sendQuickMsg('📍 الموقع الإستراتيجي')" class="bg-blue-900/20 border border-blue-500/10 px-3 py-1.5 rounded-full text-[11px] hover:bg-blue-600">📍 الموقع</button>
-                        <button onclick="sendQuickMsg('🏗️ سابقة أعمال الشركة')" class="bg-blue-900/20 border border-blue-500/10 px-3 py-1.5 rounded-full text-[11px] hover:bg-blue-600">🏗️ سابقة الأعمال</button>
-                        <button onclick="sendQuickMsg('💰 أنظمة السداد')" class="bg-blue-900/20 border border-blue-500/10 px-3 py-1.5 rounded-full text-[11px] hover:bg-blue-600">💰 الأسعار</button>
-                    </div>
-
-                    <div class="flex gap-2 items-center bg-slate-900/60 p-2 rounded-2xl border border-slate-700/50">
-                        <button onclick="startChatVoice()" id="chat-mic" class="w-10 h-10 flex items-center justify-center text-blue-400"><i class="fas fa-microphone"></i></button>
-                        <input type="text" id="user-input" class="flex-1 bg-transparent py-2 px-2 focus:outline-none text-md" placeholder="اكتب أو اتكلم مع كيمو...">
-                        <button onclick="sendMessage()" class="bg-blue-600 w-10 h-10 rounded-xl flex items-center justify-center shadow-lg"><i class="fas fa-paper-plane text-sm"></i></button>
-                    </div>
+            <div class="flex gap-3 items-center bg-slate-950/50 p-2 rounded-2xl border border-slate-800">
+                <div class="mic-wave w-12 h-12">
+                    <button onclick="startChatVoice()" id="chat-mic" class="w-10 h-10 bg-blue-600/20 rounded-full flex items-center justify-center text-blue-400">
+                        <i class="fas fa-microphone"></i>
+                    </button>
                 </div>
+                <input type="text" id="user-input" class="flex-1 bg-transparent py-2 text-lg focus:outline-none" placeholder="تحدث مع AIP عن المشروع...">
+                <button onclick="sendMessage()" class="bg-blue-600 w-12 h-12 rounded-xl flex items-center justify-center"><i class="fas fa-paper-plane"></i></button>
             </div>
         </div>
-    </div>
+
+        <div id="media-content" class="flex gap-4 overflow-x-auto py-4 px-2 custom-scrollbar min-h-[160px]">
+            <div class="text-slate-700 flex items-center justify-center w-full italic text-sm">سيتم عرض صور المشروع هنا...</div>
+        </div>
+
+    </main>
 
     <script>
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxHQwlvc8o-6MwCH_UgrJVn9QPlQULQl-Yb7F8GdLB6i2RbZDikYScG54j7yjFfeP0LHA/exec";
-        let platformId = 'web-' + Date.now();
+        let platformId = 'AIP-' + Date.now();
         let chatHistory = "";
         let currentImages = [];
         let currentIndex = 0;
@@ -108,26 +124,15 @@
                 if(document.getElementById('start-overlay').style.display !== 'none') finalizeIntro(text);
                 else { document.getElementById('user-input').value = text; sendMessage(); }
             };
-            recognition.onend = () => document.getElementById('chat-mic').classList.remove('mic-active');
         }
 
-        function startKimoInteraction() {
-            recognition && recognition.start();
-            document.getElementById('ai-status').innerText = "LISTENING...";
-        }
-
-        function startChatVoice() {
-            recognition && recognition.start();
-            document.getElementById('chat-mic').classList.add('mic-active');
-        }
+        function startKimoInteraction() { recognition && recognition.start(); }
+        function startChatVoice() { recognition && recognition.start(); }
 
         function finalizeIntro(name) {
-            document.getElementById('start-overlay').classList.add('opacity-0');
-            setTimeout(() => {
-                document.getElementById('start-overlay').style.display = 'none';
-                document.getElementById('main-ui').classList.remove('hidden');
-                document.getElementById('main-ui').classList.add('opacity-100');
-            }, 500);
+            document.getElementById('start-overlay').style.display = 'none';
+            document.getElementById('main-ui').classList.remove('hidden');
+            document.getElementById('main-ui').classList.add('opacity-100');
             sendQuickMsg(name);
         }
 
@@ -147,9 +152,9 @@
 
         function appendMessage(sender, text, type) {
             const chatBox = document.getElementById('chat-box');
-            chatBox.innerHTML += `<div class="p-3 rounded-2xl ${type === 'user' ? 'bg-blue-600' : 'bg-slate-800/80 border border-blue-500/10'} transition-all">
-                <span class="text-[9px] uppercase font-black opacity-30 tracking-widest">${sender}</span>
-                <p class="text-sm mt-1 leading-relaxed">${text}</p></div>`;
+            chatBox.innerHTML += `<div class="p-4 rounded-2xl ${type === 'user' ? 'bg-blue-600 ml-12' : 'ai-bubble mr-12'} animate-[slideIn_0.3s]">
+                <span class="text-[9px] uppercase font-black opacity-40">${sender}</span>
+                <p class="text-md mt-1">${text}</p></div>`;
             chatBox.scrollTop = chatBox.scrollHeight;
         }
 
@@ -163,21 +168,22 @@
                 const data = await response.json();
                 showLoading(false);
                 if(data.reply) {
-                    appendMessage("كيمو", data.reply, 'ai');
+                    appendMessage("AIP", data.reply, 'ai');
                     chatHistory += `\nUser: ${msg}\nAIP: ${data.reply}`;
+                    document.getElementById('quick-replies').style.opacity = "1";
                 }
                 if(data.media && data.media.length > 0) {
                     currentImages = data.media;
-                    updateMediaGrid();
+                    updateMediaCarousel();
                 }
             } catch (err) { showLoading(false); }
         }
 
-        function updateMediaGrid() {
+        function updateMediaCarousel() {
             const content = document.getElementById('media-content');
             content.innerHTML = currentImages.map((img, idx) => `
-                <div class="img-card mb-4" onclick="openLightbox(${idx})">
-                    <img src="${img}" class="w-full h-auto">
+                <div class="img-card shadow-lg" onclick="openLightbox(${idx})">
+                    <img src="${img}" class="w-full h-full object-cover">
                 </div>`).join('');
         }
 
@@ -185,9 +191,6 @@
             currentIndex = idx;
             document.getElementById('lightbox').style.display = 'flex';
             document.getElementById('lightbox-main').src = currentImages[currentIndex];
-            const thumbs = document.getElementById('lightbox-thumbs');
-            thumbs.innerHTML = currentImages.map((img, i) => `
-                <img src="${img}" class="w-16 h-16 rounded-lg object-cover cursor-pointer ${i===idx?'border-2 border-blue-500':''}" onclick="currentIndex=${i}; document.getElementById('lightbox-main').src=currentImages[${i}]">`).join('');
         }
 
         function closeLightbox() { document.getElementById('lightbox').style.display = 'none'; }
@@ -196,7 +199,7 @@
 
         function showLoading(show) {
             const chatBox = document.getElementById('chat-box');
-            if(show) chatBox.innerHTML += `<div id="loader" class="flex gap-1 p-2"><div class="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce"></div><div class="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce" style="animation-delay:0.2s"></div></div>`;
+            if(show) chatBox.innerHTML += `<div id="loader" class="flex gap-1 p-2"><div class="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div><div class="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style="animation-delay:0.2s"></div></div>`;
             else { const l = document.getElementById('loader'); l && l.remove(); }
             chatBox.scrollTop = chatBox.scrollHeight;
         }
