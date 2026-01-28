@@ -3,124 +3,90 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Down Town | المستشار الذكي</title>
+    <title>Down Town | Command Center</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&family=Cairo:wght@300;700&display=swap');
-        
-        :root { --primary-blue: #3b82f6; --neon-cyan: #06b6d4; }
-        body { background: #020617; color: #f8fafc; font-family: 'Cairo', sans-serif; overflow: hidden; }
+        :root { --neon-blue: #3b82f6; --dark-bg: #020617; }
+        body { background: var(--dark-bg); color: #f8fafc; font-family: 'Cairo', sans-serif; overflow: hidden; }
         .cyber-font { font-family: 'Orbitron', sans-serif; }
 
-        /* واجهة الدخول المستقبلية */
-        #start-overlay {
-            background: radial-gradient(circle at center, #0f172a 0%, #020617 100%);
-            transition: all 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+        /* Gallery Lightbox */
+        #lightbox {
+            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 200;
+            flex-direction: column; align-items: center; justify-content: center; backdrop-filter: blur(15px);
         }
+        .lightbox-img { max-height: 70vh; max-width: 90vw; object-fit: contain; border-radius: 1rem; box-shadow: 0 0 50px rgba(59, 130, 246, 0.5); }
+        .thumb-nav { display: flex; gap: 10px; margin-top: 20px; overflow-x: auto; padding: 10px; max-width: 80vw; }
+        .thumb-item { width: 60px; height: 60px; border-radius: 8px; cursor: pointer; opacity: 0.5; transition: 0.3s; border: 2px solid transparent; }
+        .thumb-item.active { opacity: 1; border-color: var(--neon-blue); transform: scale(1.1); }
 
-        .ai-pulse-ring {
-            position: absolute; width: 100%; height: 100%;
-            border: 2px solid var(--primary-blue); border-radius: 50%;
-            animation: ring-pulse 2s infinite; opacity: 0;
-        }
+        /* Animations */
+        .img-card { cursor: pointer; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); position: relative; overflow: hidden; border-radius: 1.5rem; }
+        .img-card:hover { transform: translateY(-10px) scale(1.02); box-shadow: 0 20px 40px rgba(59, 130, 246, 0.3); }
+        .img-card::after { content: '🔍 عرض التفاصيل'; position: absolute; inset: 0; background: rgba(59, 130, 246, 0.4); display: flex; align-items: center; justify-content: center; opacity: 0; transition: 0.3s; font-weight: bold; }
+        .img-card:hover::after { opacity: 1; }
 
-        @keyframes ring-pulse {
-            0% { transform: scale(0.8); opacity: 0.8; }
-            100% { transform: scale(1.5); opacity: 0; }
-        }
-
-        /* الميكروفون والموجات */
-        .mic-container {
-            width: 140px; height: 140px;
-            background: rgba(30, 41, 59, 0.5);
-            border: 1px solid rgba(59, 130, 246, 0.3);
-            display: flex; align-items: center; justify-content: center;
-            border-radius: 50%; cursor: pointer; position: relative;
-            transition: all 0.5s ease;
-        }
-        .mic-container:hover { box-shadow: 0 0 30px var(--primary-blue); transform: scale(1.05); }
-
-        .waveform {
-            display: flex; align-items: center; gap: 4px; height: 40px; opacity: 0; transition: opacity 0.5s;
-        }
-        .wave-bar {
-            width: 4px; height: 10px; background: var(--neon-cyan);
-            border-radius: 2px; animation: wave-anim 1s infinite ease-in-out;
-        }
-        @keyframes wave-anim {
-            0%, 100% { height: 10px; } 50% { height: 40px; }
-        }
-
-        .glass-card { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(25px); border: 1px solid rgba(255, 255, 255, 0.1); }
-        .user-bubble { background: linear-gradient(135deg, #2563eb, #1d4ed8); }
-        .ai-bubble { border-right: 4px solid var(--primary-blue); background: rgba(30, 41, 59, 0.8); }
+        .mic-active { animation: pulse-red 1.5s infinite; color: #ef4444 !important; }
+        @keyframes pulse-red { 0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); } 70% { transform: scale(1.2); box-shadow: 0 0 0 15px rgba(239, 68, 68, 0); } 100% { transform: scale(1); } }
         
-        .hidden-chat { transform: translateY(100px); opacity: 0; pointer-events: none; }
-        .show-chat { transform: translateY(0); opacity: 1; pointer-events: auto; transition: all 1s ease-out; }
+        .glass { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); }
     </style>
 </head>
 <body>
 
-    <div id="start-overlay" class="fixed inset-0 z-[100] flex flex-col items-center justify-center p-6 text-center">
-        <div class="mb-12 relative">
-            <div class="ai-pulse-ring" style="animation-delay: 0s"></div>
-            <div class="ai-pulse-ring" style="animation-delay: 0.5s"></div>
-            <div class="mic-container shadow-2xl" id="main-mic-btn" onclick="startKimoInteraction()">
-                <i class="fas fa-microphone-alt text-5xl text-blue-400" id="mic-icon"></i>
-            </div>
+    <div id="lightbox">
+        <button onclick="closeLightbox()" class="absolute top-8 right-8 text-4xl hover:text-red-500 transition-colors"><i class="fas fa-times"></i></button>
+        <div class="flex items-center gap-8 w-full justify-center px-4">
+            <button onclick="prevImg()" class="text-4xl hover:text-blue-400"><i class="fas fa-chevron-left"></i></button>
+            <img id="lightbox-main" class="lightbox-img" src="">
+            <button onclick="nextImg()" class="text-4xl hover:text-blue-400"><i class="fas fa-chevron-right"></i></button>
         </div>
-
-        <div class="space-y-4">
-            <h2 id="ai-status" class="cyber-font text-3xl font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400">
-                SYSTEM STANDBY
-            </h2>
-            <p id="instruction-text" class="text-white text-2xl font-light tracking-wide italic">
-                "منور يا فندم.. اتشرف باسم حضرتك؟"
-            </p>
-        </div>
-
-        <div class="waveform mt-8" id="voice-waves">
-            <div class="wave-bar" style="animation-delay: 0.1s"></div>
-            <div class="wave-bar" style="animation-delay: 0.2s"></div>
-            <div class="wave-bar" style="animation-delay: 0.3s"></div>
-            <div class="wave-bar" style="animation-delay: 0.4s"></div>
-            <div class="wave-bar" style="animation-delay: 0.5s"></div>
-        </div>
-        
-        <p id="captured-text" class="mt-4 text-blue-300 font-bold text-lg italic"></p>
+        <div class="thumb-nav" id="lightbox-thumbs"></div>
     </div>
 
-    <div id="main-ui" class="max-w-6xl mx-auto p-4 md:p-10 hidden-chat">
-        <header class="flex flex-col items-center mb-10">
-            <h1 class="cyber-font text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-cyan-500">KIMO COMMAND</h1>
-            <div class="h-1 w-32 bg-blue-600 rounded-full mt-2 opacity-30"></div>
+    <div id="start-overlay" class="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-slate-950 transition-all duration-1000">
+        <div class="w-32 h-32 bg-blue-600 rounded-full flex items-center justify-center cursor-pointer hover:scale-110 transition-transform shadow-2xl" onclick="startKimoInteraction()">
+            <i class="fas fa-microphone text-4xl text-white"></i>
+        </div>
+        <h2 id="ai-status" class="cyber-font text-2xl font-bold text-blue-400 mt-8 animate-pulse">كيمو جاهز لسماعك..</h2>
+        <p class="text-slate-400 mt-2">"ممكن نتعرف؟ اسم حضرتك إيه؟"</p>
+    </div>
+
+    <div id="main-ui" class="max-w-6xl mx-auto p-4 md:p-8 h-screen flex flex-col hidden opacity-0 transition-opacity duration-1000">
+        <header class="flex justify-between items-center mb-6">
+            <h1 class="cyber-font text-3xl font-black text-blue-500">KIMO <span class="text-white opacity-30">AI</span></h1>
+            <div class="flex items-center gap-3">
+                <span class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></span>
+                <span class="text-xs font-bold tracking-widest text-slate-400 uppercase">System Online</span>
+            </div>
         </header>
 
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 h-[75vh]">
-            <div class="lg:col-span-5 h-full hidden lg:block">
-                <div id="media-content" class="glass-card rounded-[2.5rem] p-4 h-full flex flex-col gap-4 overflow-y-auto custom-scrollbar">
-                    <div class="flex flex-col items-center justify-center h-full text-slate-500 italic opacity-50">
-                        <i class="fas fa-project-diagram text-5xl mb-4"></i>
-                        <p>قيد تحميل البيانات البصرية...</p>
-                    </div>
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 flex-1 overflow-hidden mb-4">
+            <div class="lg:col-span-4 h-full hidden lg:block overflow-y-auto pr-2 custom-scrollbar" id="media-content">
+                <div class="h-full flex items-center justify-center border-2 border-dashed border-slate-800 rounded-[2.5rem] text-slate-600 italic">
+                    سيتم عرض صور المشروع هنا..
                 </div>
             </div>
 
-            <div class="lg:col-span-7 h-full">
-                <div class="glass-card rounded-[2.5rem] p-6 h-full flex flex-col relative">
-                    <div id="chat-box" class="flex-1 overflow-y-auto space-y-6 mb-6 pr-2 scroll-smooth"></div>
+            <div class="lg:col-span-8 h-full flex flex-col">
+                <div class="glass rounded-[2.5rem] p-6 flex-1 flex flex-col overflow-hidden">
+                    <div id="chat-box" class="flex-1 overflow-y-auto space-y-4 mb-4 scroll-smooth pr-2"></div>
                     
-                    <div id="quick-replies" class="flex flex-wrap gap-2 mb-4 opacity-0 transition-opacity duration-500">
-                        <button onclick="sendQuickMsg('📍 الموقع الإستراتيجي')" class="bg-blue-900/30 border border-blue-500/30 hover:bg-blue-600 px-4 py-2 rounded-full text-xs font-bold transition-all">📍 الموقع</button>
-                        <button onclick="sendQuickMsg('🏗️ سابقة الأعمال')" class="bg-blue-900/30 border border-blue-500/30 hover:bg-blue-600 px-4 py-2 rounded-full text-xs font-bold transition-all">🏗️ سابقة الأعمال</button>
-                        <button onclick="sendQuickMsg('💰 الأسعار')" class="bg-blue-900/30 border border-blue-500/30 hover:bg-blue-600 px-4 py-2 rounded-full text-xs font-bold transition-all">💰 الأسعار</button>
+                    <div id="quick-replies" class="flex flex-wrap gap-2 mb-4">
+                        <button onclick="sendQuickMsg('📍 الموقع')" class="bg-blue-900/40 border border-blue-500/20 px-4 py-2 rounded-full text-xs hover:bg-blue-600 transition-all">📍 الموقع</button>
+                        <button onclick="sendQuickMsg('🏗️ سابقة الأعمال')" class="bg-blue-900/40 border border-blue-500/20 px-4 py-2 rounded-full text-xs hover:bg-blue-600 transition-all">🏗️ سابقة الأعمال</button>
+                        <button onclick="sendQuickMsg('💰 الأسعار')" class="bg-blue-900/40 border border-blue-500/20 px-4 py-2 rounded-full text-xs hover:bg-blue-600 transition-all">💰 الأسعار</button>
                     </div>
 
-                    <div class="flex gap-3 bg-slate-900/50 p-2 rounded-2xl border border-slate-700">
-                        <input type="text" id="user-input" class="flex-1 bg-transparent py-3 px-4 focus:outline-none text-lg" placeholder="اسأل كيمو عن أي تفاصيل...">
-                        <button onclick="sendMessage()" class="bg-blue-600 hover:bg-blue-700 w-14 h-14 rounded-xl flex items-center justify-center transition-all shadow-lg">
-                            <i class="fas fa-paper-plane text-xl"></i>
+                    <div class="flex gap-2 items-center bg-slate-900/80 p-2 rounded-2xl border border-slate-700">
+                        <button onclick="startChatVoice()" id="chat-mic" class="w-12 h-12 flex items-center justify-center text-blue-400 hover:text-white transition-all">
+                            <i class="fas fa-microphone text-xl"></i>
+                        </button>
+                        <input type="text" id="user-input" class="flex-1 bg-transparent py-3 px-2 focus:outline-none text-lg" placeholder="اكتب أو اتكلم مع كيمو...">
+                        <button onclick="sendMessage()" class="bg-blue-600 w-12 h-12 rounded-xl flex items-center justify-center shadow-lg hover:bg-blue-700 transition-all">
+                            <i class="fas fa-paper-plane"></i>
                         </button>
                     </div>
                 </div>
@@ -130,49 +96,47 @@
 
     <script>
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxHQwlvc8o-6MwCH_UgrJVn9QPlQULQl-Yb7F8GdLB6i2RbZDikYScG54j7yjFfeP0LHA/exec";
-        let platformId = localStorage.getItem('aip_platform_id') || ('web-' + Date.now());
-        localStorage.setItem('aip_platform_id', platformId);
+        let platformId = 'web-' + Date.now();
         let chatHistory = "";
+        let currentImages = [];
+        let currentIndex = 0;
         let recognition;
 
-        // تهيئة الـ Voice Recognition
+        // Speech Recognition Setup
         if ('webkitSpeechRecognition' in window) {
             recognition = new webkitSpeechRecognition();
             recognition.lang = 'ar-EG';
-            recognition.onresult = (event) => {
-                const text = event.results[0][0].transcript;
-                document.getElementById('captured-text').innerText = `"${text}"`;
-                setTimeout(() => finalizeIntro(text), 800);
+            recognition.onresult = (e) => {
+                const text = e.results[0][0].transcript;
+                if(document.getElementById('start-overlay').style.display !== 'none') {
+                    finalizeIntro(text);
+                } else {
+                    document.getElementById('user-input').value = text;
+                    document.getElementById('chat-mic').classList.remove('mic-active');
+                    sendMessage();
+                }
             };
-            recognition.onerror = () => { finalizeIntro("START_PROACTIVE_CONVERSATION"); };
+            recognition.onend = () => document.getElementById('chat-mic').classList.remove('mic-active');
         }
 
         function startKimoInteraction() {
-            if(recognition) {
-                recognition.start();
-                document.getElementById('ai-status').innerText = "SYSTEM LISTENING...";
-                document.getElementById('voice-waves').style.opacity = "1";
-                document.getElementById('mic-icon').className = "fas fa-circle-notch fa-spin text-5xl text-blue-400";
-            } else {
-                finalizeIntro("START_PROACTIVE_CONVERSATION");
-            }
+            recognition && recognition.start();
+            document.getElementById('ai-status').innerText = "جاري الاستماع...";
         }
 
-        async function finalizeIntro(userInput) {
-            // إخفاء الـ Overlay وإظهار الـ Dashboard
-            const overlay = document.getElementById('start-overlay');
-            const mainUI = document.getElementById('main-ui');
-            
-            overlay.classList.add('scale-150', 'opacity-0');
-            setTimeout(() => {
-                overlay.style.display = 'none';
-                mainUI.classList.add('show-chat');
-                document.body.style.overflow = 'auto';
-            }, 800);
+        function startChatVoice() {
+            recognition && recognition.start();
+            document.getElementById('chat-mic').classList.add('mic-active');
+        }
 
-            // بدء المحادثة
-            appendMessage("أنا", userInput, 'user');
-            await apiCall(userInput);
+        function finalizeIntro(name) {
+            document.getElementById('start-overlay').classList.add('opacity-0');
+            setTimeout(() => {
+                document.getElementById('start-overlay').style.display = 'none';
+                document.getElementById('main-ui').classList.remove('hidden');
+                document.getElementById('main-ui').classList.add('opacity-100');
+            }, 1000);
+            sendQuickMsg(name);
         }
 
         async function sendQuickMsg(text, isHidden = false) {
@@ -191,12 +155,9 @@
 
         function appendMessage(sender, text, type) {
             const chatBox = document.getElementById('chat-box');
-            const bubbleClass = type === 'user' ? 'user-bubble' : 'ai-bubble shadow-xl';
-            chatBox.innerHTML += `
-                <div class="chat-bubble ${bubbleClass} animate-[slideIn_0.4s] flex flex-col">
-                    <span class="text-[9px] uppercase font-black opacity-40 mb-1">${sender}</span>
-                    <p class="text-[16px] leading-relaxed">${text}</p>
-                </div>`;
+            chatBox.innerHTML += `<div class="p-4 rounded-2xl ${type === 'user' ? 'user-bubble' : 'ai-bubble'} animate-[slideIn_0.3s]">
+                <span class="text-[10px] uppercase font-black opacity-40">${sender}</span>
+                <p class="text-md mt-1">${text}</p></div>`;
             chatBox.scrollTop = chatBox.scrollHeight;
         }
 
@@ -212,52 +173,47 @@
                 if(data.reply) {
                     appendMessage("كيمو", data.reply, 'ai');
                     chatHistory += `\nUser: ${msg}\nAIP: ${data.reply}`;
-                    document.getElementById('quick-replies').style.opacity = "1";
                 }
-                if(data.media) updateMedia(data.media);
-                if(data.audio) playAudio(data.audio);
-            } catch (err) { console.error(err); showLoading(false); }
+                if(data.media && data.media.length > 0) {
+                    currentImages = data.media;
+                    updateMediaGrid();
+                }
+            } catch (err) { showLoading(false); }
         }
 
-        function updateMedia(links) {
+        function updateMediaGrid() {
             const content = document.getElementById('media-content');
             content.innerHTML = `<div class="grid grid-cols-1 gap-4">` + 
-                links.map(link => `
-                    <div class="rounded-3xl overflow-hidden border border-white/10 shadow-2xl">
-                        <img src="${link.trim()}" class="w-full hover:scale-105 transition-transform duration-700">
-                    </div>
-                `).join('') + `</div>`;
+                currentImages.map((img, idx) => `
+                    <div class="img-card" onclick="openLightbox(${idx})">
+                        <img src="${img}" class="w-full h-auto object-cover">
+                    </div>`).join('') + `</div>`;
         }
+
+        // Lightbox Logic
+        function openLightbox(idx) {
+            currentIndex = idx;
+            document.getElementById('lightbox').style.display = 'flex';
+            updateLightbox();
+        }
+
+        function closeLightbox() { document.getElementById('lightbox').style.display = 'none'; }
+
+        function updateLightbox() {
+            document.getElementById('lightbox-main').src = currentImages[currentIndex];
+            const thumbs = document.getElementById('lightbox-thumbs');
+            thumbs.innerHTML = currentImages.map((img, idx) => `
+                <img src="${img}" class="thumb-item ${idx === currentIndex ? 'active' : ''}" onclick="currentIndex=${idx}; updateLightbox();">
+            `).join('');
+        }
+
+        function nextImg() { currentIndex = (currentIndex + 1) % currentImages.length; updateLightbox(); }
+        function prevImg() { currentIndex = (currentIndex - 1 + currentImages.length) % currentImages.length; updateLightbox(); }
 
         function showLoading(show) {
             const chatBox = document.getElementById('chat-box');
-            if(show) {
-                chatBox.innerHTML += `<div id="ai-loading" class="flex gap-2 p-4"><div class="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div><div class="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style="animation-delay:0.2s"></div><div class="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style="animation-delay:0.4s"></div></div>`;
-            } else {
-                const loader = document.getElementById('ai-loading');
-                if(loader) loader.remove();
-            }
-            chatBox.scrollTop = chatBox.scrollHeight;
-        }
-
-        function playAudio(base64) {
-            const binaryString = window.atob(base64);
-            const bytes = new Uint8Array(binaryString.length);
-            for (let i = 0; i < binaryString.length; i++) { bytes[i] = binaryString.charCodeAt(i); }
-            const blob = new Blob([createWavHeader(binaryString.length, 24000), bytes], { type: 'audio/wav' });
-            new Audio(URL.createObjectURL(blob)).play();
-        }
-
-        function createWavHeader(dataLength, sampleRate) {
-            const buffer = new ArrayBuffer(44);
-            const view = new DataView(buffer);
-            const writeString = (offset, str) => { for (let i = 0; i < str.length; i++) { view.setUint8(offset + i, str.charCodeAt(i)); } };
-            writeString(0, 'RIFF'); view.setUint32(4, 36 + dataLength, true);
-            writeString(8, 'WAVE'); writeString(12, 'fmt '); view.setUint32(16, 16, true);
-            view.setUint16(20, 1, true); view.setUint16(22, 1, true); view.setUint32(24, sampleRate, true);
-            view.setUint32(28, sampleRate * 2, true); view.setUint16(32, 2, true); view.setUint16(34, 16, true);
-            writeString(36, 'data'); view.setUint32(40, dataLength, true);
-            return buffer;
+            if(show) chatBox.innerHTML += `<div id="loader" class="flex gap-1 p-2"><div class="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div><div class="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style="animation-delay:0.2s"></div></div>`;
+            else { const l = document.getElementById('loader'); l && l.remove(); }
         }
     </script>
 </body>
