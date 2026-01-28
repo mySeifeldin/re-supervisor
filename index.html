@@ -3,197 +3,155 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AIP | Command Center</title>
+    <title>AIP | Down Town Experience</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&family=Cairo:wght@300;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;700&display=swap');
         :root { --aip-blue: #3b82f6; --dark-bg: #020617; }
         body { background: var(--dark-bg); color: #f8fafc; font-family: 'Cairo', sans-serif; overflow: hidden; height: 100vh; }
-        .cyber-font { font-family: 'Orbitron', sans-serif; }
-        ::-webkit-scrollbar { height: 6px; }
-        ::-webkit-scrollbar-thumb { background: var(--aip-blue); border-radius: 10px; }
-        
-        #lightbox { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 200; flex-direction: column; align-items: center; justify-content: center; backdrop-filter: blur(15px); }
-        .lightbox-img { max-height: 80vh; max-width: 90vw; object-fit: contain; border-radius: 1rem; }
-
-        /* Mic Styles */
-        .mic-wave { position: relative; display: flex; align-items: center; justify-content: center; }
-        .mic-wave::before { content: ''; position: absolute; width: 100%; height: 100%; background: var(--aip-blue); border-radius: 50%; animation: pulse-wave 2s infinite; opacity: 0.5; z-index: -1; }
-        
-        .mic-wave.recording::before { background: #ef4444; animation: pulse-wave 1s infinite; }
-        .mic-wave.recording button, .mic-wave.recording .mic-circle { background: #ef4444 !important; color: white !important; box-shadow: 0 0 20px rgba(239, 68, 68, 0.5); }
-
-        @keyframes pulse-wave { 0% { transform: scale(1); opacity: 0.6; } 100% { transform: scale(1.8); opacity: 0; } }
-        
-        .img-card { flex: 0 0 auto; width: 220px; height: 140px; cursor: pointer; transition: all 0.4s ease; border-radius: 1.2rem; overflow: hidden; border: 2px solid rgba(255,255,255,0.05); }
-        .img-card:hover { transform: translateY(-10px); border-color: var(--aip-blue); }
         .glass { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(25px); border: 1px solid rgba(255,255,255,0.1); }
-        .ai-bubble { background: rgba(30, 41, 59, 0.7); border-right: 4px solid var(--aip-blue); }
+        
+        /* Presentation Animation */
+        #presentation-layer { position: fixed; inset: 0; z-index: 150; background: var(--dark-bg); display: flex; align-items: center; justify-content: center; transition: all 1s ease; }
+        .hero-slide { position: absolute; inset: 0; opacity: 0; transition: opacity 1.5s ease; background-size: cover; background-position: center; }
+        .hero-slide.active { opacity: 0.4; }
+        .present-text { position: relative; z-index: 160; text-align: center; transform: translateY(30px); opacity: 0; transition: all 1s ease; }
+        .present-text.active { transform: translateY(0); opacity: 1; }
+
+        /* Chat Styles */
+        .ai-bubble { background: rgba(30, 41, 59, 0.7); border-right: 4px solid var(--aip-blue); white-space: pre-line; }
+        .wa-float { position: fixed; bottom: 100px; left: 20px; z-index: 200; display: none; }
+        .img-card { flex: 0 0 auto; width: 200px; height: 120px; border-radius: 1rem; overflow: hidden; border: 2px solid rgba(59, 130, 246, 0.3); }
+        
+        @keyframes slideUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .animate-slide { animation: slideUp 0.8s ease forwards; }
     </style>
 </head>
 <body class="flex flex-col h-screen">
 
-    <div id="lightbox">
-        <button onclick="closeLightbox()" class="absolute top-8 right-8 text-3xl"><i class="fas fa-times"></i></button>
-        <div class="flex items-center gap-6">
-            <button onclick="prevImg()" class="text-3xl"><i class="fas fa-chevron-left"></i></button>
-            <img id="lightbox-main" class="lightbox-img" src="">
-            <button onclick="nextImg()" class="text-3xl"><i class="fas fa-chevron-right"></i></button>
+    <div id="presentation-layer">
+        <div id="slides-container"></div>
+        <div class="present-text" id="present-info">
+            <h1 class="text-4xl font-black mb-4 text-blue-500">DOWN TOWN MANSOURA</h1>
+            <p class="text-xl text-slate-300 mb-8" id="dynamic-text">جاري تحميل تجربة الذكاء الاصطناعي...</p>
+            <button onclick="skipToChat()" class="px-8 py-3 bg-blue-600 rounded-full font-bold animate-pulse">ابدأ المحادثة الآن</button>
         </div>
     </div>
 
-    <div id="start-overlay" class="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-[#020617]">
-        <div id="intro-mic-container" class="mic-wave w-32 h-32 mb-8 cursor-pointer" onclick="startKimoInteraction()">
-            <div class="mic-circle w-24 h-24 bg-blue-600 rounded-full flex items-center justify-center shadow-2xl transition-all">
-                <i class="fas fa-microphone text-4xl text-white"></i>
-            </div>
-        </div>
-        <h2 class="cyber-font text-2xl font-bold text-blue-400 mb-2">AIP INTELLIGENCE</h2>
-        <p class="text-slate-400">اتشرف باسم حضرتك لبدء عرض مشروع Down Town؟</p>
-    </div>
-
-    <main id="main-ui" class="flex-1 flex flex-col p-4 md:p-6 hidden opacity-0 transition-opacity duration-1000 overflow-hidden">
-        <header class="flex justify-between items-center mb-4 px-2">
+    <main id="main-ui" class="flex-1 flex flex-col p-4 opacity-0 transition-opacity duration-1000">
+        <header class="flex justify-between items-center mb-4">
             <div>
-                <h1 class="cyber-font text-2xl font-black text-blue-500">AIP <span class="text-white opacity-20">AI</span></h1>
-                <span class="text-[10px] text-slate-500 tracking-widest uppercase">Official Partner of Al-Temamy</span>
+                <h1 class="text-xl font-black text-blue-500">AIP <span class="text-white opacity-20">CLIENT</span></h1>
+                <p class="text-[8px] uppercase tracking-widest text-slate-500">Al-Temamy Official Intelligence</p>
             </div>
-            <div class="text-right">
-                <h2 class="text-sm font-bold text-slate-300">Down Town Mansoura</h2>
-                <span class="text-[9px] bg-blue-500/10 text-blue-400 px-2 py-0.5 rounded border border-blue-500/20">System Online</span>
-            </div>
+            <button onclick="window.open('https://wa.me/201000000000')" class="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center shadow-lg"><i class="fab fa-whatsapp text-xl"></i></button>
         </header>
 
-        <div class="flex-1 glass rounded-[2.5rem] p-6 mb-6 flex flex-col overflow-hidden">
-            <div id="chat-box" class="flex-1 overflow-y-auto space-y-4 mb-4 pr-2 scroll-smooth"></div>
+        <div class="flex-1 glass rounded-[2rem] p-4 mb-4 flex flex-col overflow-hidden">
+            <div id="chat-box" class="flex-1 overflow-y-auto space-y-4 mb-4 pr-1 scroll-smooth"></div>
             
-            <div id="quick-replies" class="flex flex-wrap gap-2 mb-4 opacity-0 transition-opacity">
-                <button onclick="sendQuickMsg('📍 الموقع')" class="bg-blue-900/30 border border-blue-500/20 px-4 py-2 rounded-full text-xs">📍 الموقع</button>
-                <button onclick="sendQuickMsg('🏗️ سابقة الأعمال')" class="bg-blue-900/30 border border-blue-500/20 px-4 py-2 rounded-full text-xs">🏗️ سابقة الأعمال</button>
+            <div id="quick-replies" class="flex gap-2 overflow-x-auto pb-2">
+                <button onclick="sendQuickMsg('📍 الموقع')" class="whitespace-nowrap bg-slate-800 border border-blue-500/20 px-4 py-2 rounded-full text-xs">📍 الموقع</button>
+                <button onclick="sendQuickMsg('🏗️ سابقة الأعمال')" class="whitespace-nowrap bg-slate-800 border border-blue-500/20 px-4 py-2 rounded-full text-xs">🏗️ سابقة الأعمال</button>
+                <button onclick="sendQuickMsg('أريد حجز وحدة (إحجز الآن)')" class="whitespace-nowrap bg-blue-600 px-4 py-2 rounded-full text-xs font-bold">💎 إحجز الآن</button>
             </div>
 
-            <div class="flex gap-3 items-center bg-slate-950/50 p-2 rounded-2xl border border-slate-800">
-                <div id="chat-mic-container" class="mic-wave w-12 h-12">
-                    <button onclick="startChatVoice()" class="w-10 h-10 bg-blue-600/20 rounded-full flex items-center justify-center text-blue-400 transition-all">
-                        <i class="fas fa-microphone"></i>
-                    </button>
-                </div>
-                <input type="text" id="user-input" class="flex-1 bg-transparent py-2 text-lg focus:outline-none" placeholder="تحدث مع AIP عن المشروع...">
-                <button onclick="sendMessage()" class="bg-blue-600 w-12 h-12 rounded-xl flex items-center justify-center"><i class="fas fa-paper-plane"></i></button>
+            <div class="flex gap-2 items-center bg-slate-950 p-2 rounded-2xl">
+                <input type="text" id="user-input" class="flex-1 bg-transparent px-2 text-sm outline-none" placeholder="اسأل كيمو عن تفاصيل المشروع...">
+                <button onclick="sendMessage()" class="bg-blue-600 w-10 h-10 rounded-xl flex items-center justify-center"><i class="fas fa-paper-plane"></i></button>
             </div>
         </div>
 
-        <div id="media-content" class="flex gap-4 overflow-x-auto py-4 px-2 custom-scrollbar min-h-[160px]"></div>
+        <div id="media-content" class="flex gap-3 overflow-x-auto py-2"></div>
     </main>
 
+    <a id="wa-referral" href="https://wa.me/201000000000" target="_blank" class="wa-float w-16 h-16 bg-green-600 rounded-full flex items-center justify-center shadow-2xl animate-bounce">
+        <i class="fab fa-whatsapp text-3xl text-white"></i>
+    </a>
+
     <script>
-        // (نفس الـ JavaScript مع إضافة كلاسات الـ recording في الـ recognition كما بالأعلى)
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxHQwlvc8o-6MwCH_UgrJVn9QPlQULQl-Yb7F8GdLB6i2RbZDikYScG54j7yjFfeP0LHA/exec";
-        let platformId = 'AIP-' + Date.now();
-        let chatHistory = "";
-        let currentImages = [];
-        let currentIndex = 0;
-        let recognition;
+        const introImages = [
+            "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=2070", // صورة تجريبية
+            "https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=2069"
+        ];
+        const introTexts = [
+            "مرحباً بك في داون تاون المنصورة الجديدة",
+            "استثمارك الأول مع شركة التمامي وأصيل",
+            "موقع استراتيجي أمام منطقة البنوك والجامعات",
+            "أنا كيمو.. مستشارك الذكي.. كيف يمكنني مساعدتك؟"
+        ];
 
-        if ('webkitSpeechRecognition' in window) {
-            recognition = new webkitSpeechRecognition();
-            recognition.lang = 'ar-EG';
+        let currentSlide = 0;
+
+        function startPresentation() {
+            const container = document.getElementById('slides-container');
+            container.innerHTML = introImages.map((src, i) => `<div class="hero-slide ${i===0?'active':''}" style="background-image:url('${src}')"></div>`).join('');
             
-            recognition.onstart = () => {
-                document.getElementById('intro-mic-container').classList.add('recording');
-                document.getElementById('chat-mic-container').classList.add('recording');
-            };
+            let textIdx = 0;
+            const textElement = document.getElementById('dynamic-text');
+            const presentDiv = document.getElementById('present-info');
+            
+            presentDiv.classList.add('active');
 
-            recognition.onresult = (e) => {
-                const text = e.results[0][0].transcript;
-                if(document.getElementById('start-overlay').style.display !== 'none') finalizeIntro(text);
-                else { document.getElementById('user-input').value = text; sendMessage(); }
-            };
-
-            recognition.onend = () => {
-                document.getElementById('intro-mic-container').classList.remove('recording');
-                document.getElementById('chat-mic-container').classList.remove('recording');
-            };
+            const interval = setInterval(() => {
+                textElement.innerText = introTexts[textIdx];
+                document.querySelectorAll('.hero-slide').forEach((s, i) => s.classList.toggle('active', i === (textIdx % introImages.length)));
+                textIdx++;
+                if(textIdx >= introTexts.length) {
+                    clearInterval(interval);
+                    setTimeout(skipToChat, 2000);
+                }
+            }, 3000);
         }
 
-        function startKimoInteraction() { recognition && recognition.start(); }
-        function startChatVoice() { recognition && recognition.start(); }
-
-        function finalizeIntro(name) {
-            document.getElementById('start-overlay').style.display = 'none';
+        function skipToChat() {
+            document.getElementById('presentation-layer').style.transform = "translateY(-100%)";
             document.getElementById('main-ui').classList.remove('hidden');
-            setTimeout(() => document.getElementById('main-ui').classList.add('opacity-100'), 50);
-            sendQuickMsg(name);
-        }
-
-        async function sendQuickMsg(text) {
-            appendMessage("أنا", text, 'user');
-            await apiCall(text);
-        }
-
-        async function sendMessage() {
-            const input = document.getElementById('user-input');
-            const msg = input.value;
-            if(!msg) return;
-            appendMessage("أنا", msg, 'user');
-            input.value = "";
-            await apiCall(msg);
-        }
-
-        function appendMessage(sender, text, type) {
-            const chatBox = document.getElementById('chat-box');
-            chatBox.innerHTML += `<div class="p-4 rounded-2xl ${type === 'user' ? 'bg-blue-600 ml-12' : 'ai-bubble mr-12'} animate-[slideIn_0.3s]">
-                <span class="text-[9px] uppercase font-black opacity-40">${sender}</span>
-                <p class="text-md mt-1">${text}</p></div>`;
-            chatBox.scrollTop = chatBox.scrollHeight;
+            setTimeout(() => {
+                document.getElementById('main-ui').classList.add('opacity-100');
+                appendMessage("كيمو", "أهلاً بك يا فندم في Down Town المنصورة الجديدة. \nأنا كيمو وموجود لمساعدة حضرتك في اختيار أفضل استثمار تجاري أو إداري. \nاتشرف باسم حضرتك؟", "ai");
+            }, 1000);
         }
 
         async function apiCall(msg) {
             showLoading(true);
-            try {
-                const response = await fetch(SCRIPT_URL, {
-                    method: "POST",
-                    body: JSON.stringify({ action: "clientAssistant", message: msg, history: chatHistory, platformId: platformId })
-                });
-                const data = await response.json();
-                showLoading(false);
-                if(data.reply) {
-                    appendMessage("AIP", data.reply, 'ai');
-                    chatHistory += `\nUser: ${msg}\nAIP: ${data.reply}`;
-                    document.getElementById('quick-replies').style.opacity = "1";
-                }
-                if(data.media && data.media.length > 0) {
-                    currentImages = data.media;
-                    updateMediaCarousel();
-                }
-            } catch (err) { showLoading(false); }
+            const response = await fetch(SCRIPT_URL, {
+                method: "POST",
+                body: JSON.stringify({ action: "clientAssistant", message: msg, history: "", platformId: "web-" + Date.now() })
+            });
+            const data = await response.json();
+            showLoading(false);
+            
+            if(data.reply) {
+                // تنسيق الرد بأسطر جديدة عند النقطة
+                const formattedReply = data.reply.replace(/\./g, ".\n");
+                appendMessage("كيمو", formattedReply, "ai");
+                if(data.redirectToWA) document.getElementById('wa-referral').style.display = "flex";
+            }
+            if(data.media) updateMedia(data.media);
         }
 
-        function updateMediaCarousel() {
+        function appendMessage(sender, text, type) {
+            const chatBox = document.getElementById('chat-box');
+            chatBox.innerHTML += `<div class="p-4 rounded-2xl ${type === 'user' ? 'bg-blue-600 ml-8' : 'ai-bubble mr-8'} animate-slide">
+                <p class="text-sm">${text}</p></div>`;
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function updateMedia(images) {
             const content = document.getElementById('media-content');
-            content.innerHTML = currentImages.map((img, idx) => `
-                <div class="img-card shadow-lg" onclick="openLightbox(${idx})">
-                    <img src="${img}" class="w-full h-full object-cover">
-                </div>`).join('');
+            content.innerHTML = images.map(img => `<div class="img-card"><img src="${img}" class="w-full h-full object-cover"></div>`).join('');
         }
-
-        function openLightbox(idx) {
-            currentIndex = idx;
-            document.getElementById('lightbox').style.display = 'flex';
-            document.getElementById('lightbox-main').src = currentImages[currentIndex];
-        }
-
-        function closeLightbox() { document.getElementById('lightbox').style.display = 'none'; }
-        function nextImg() { currentIndex = (currentIndex + 1) % currentImages.length; openLightbox(currentIndex); }
-        function prevImg() { currentIndex = (currentIndex - 1 + currentImages.length) % currentImages.length; openLightbox(currentIndex); }
 
         function showLoading(show) {
             const chatBox = document.getElementById('chat-box');
-            if(show) chatBox.innerHTML += `<div id="loader" class="flex gap-1 p-2"><div class="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div><div class="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style="animation-delay:0.2s"></div></div>`;
+            if(show) chatBox.innerHTML += `<div id="loader" class="p-2 text-xs text-blue-400">كيمو يكتب الآن...</div>`;
             else { const l = document.getElementById('loader'); l && l.remove(); }
-            chatBox.scrollTop = chatBox.scrollHeight;
         }
+
+        window.onload = startPresentation;
     </script>
 </body>
 </html>
